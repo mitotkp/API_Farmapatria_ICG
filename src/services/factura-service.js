@@ -55,16 +55,15 @@ export const getFacturaVenta = async (serie, numero) => {
 
 export const getFacturaCompra = async (serie, numero) => {
   const serieFormateada = serie.trim();
-  const numeroString = String(numero).trim();
 
-  console.log("Parametros recibidos: ", serieFormateada, numeroString);
+  console.log("Parametros recibidos: ", serieFormateada, numero);
 
   try {
     const pool = await getConnection();
     const cabeceraFactura = await pool
       .request()
       .input("SERIE", sql.VarChar, serieFormateada)
-      .input("NUMERO", sql.VarChar, numeroString)
+      .input("NUMERO", sql.Int, numero)
       .query(cQuerysSQL.getFacturaCompra);
 
     if (cabeceraFactura.recordset.length === 0) {
@@ -76,7 +75,7 @@ export const getFacturaCompra = async (serie, numero) => {
     const detalleFactura = await pool
       .request()
       .input("SERIE", sql.VarChar, serieFormateada)
-      .input("NUMERO", sql.VarChar, numeroString)
+      .input("NUMERO", sql.Int, numero)
       .query(cQuerysSQL.getDetalleFacturaCompra);
 
     if (detalleFactura.recordset.length === 0) {
