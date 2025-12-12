@@ -2,6 +2,11 @@ import { getConnection, sql } from "../config/db";
 import { cCliente, cProveedor } from "../models/clientes-proveedores";
 import cQuerysSQL from "../querys/querysSQL";
 
+/**
+ * @param {number} codCliente
+ * @returns {Promise<cCliente|null>}
+ */
+
 export const getCliente = async (codCliente) => {
   try {
     const pool = await getConnection();
