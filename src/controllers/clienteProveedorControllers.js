@@ -7,9 +7,24 @@ import {
 
 export class cClienteProveedorControllers {
   static clientes = async (req, res) => {
+    console.log(req.query.page);
+    console.log(req.query.limit);
+
+    const page = parseInt(req.query.page);
+    const limit = parseInt(req.query.limit);
+
+    console.log(page, limit);
+
     try {
-      const clientes = await getClientes();
-      res.json(clientes);
+      const clientes = await getClientes(page, limit);
+      res.status(200).json({
+        ok: true,
+        clientes,
+        page,
+        limit,
+        totalItems: clientes.totalItems,
+        totalPages: clientes.totalPages,
+      });
     } catch (error) {
       console.error("Error al obtener clientes:", error);
       res.status(500).json({ error: "Error al obtener clientes" });

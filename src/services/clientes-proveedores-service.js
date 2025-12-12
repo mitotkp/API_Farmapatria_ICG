@@ -1,6 +1,6 @@
-import { getConnection, sql } from "../config/db";
-import { cCliente, cProveedor } from "../models/clientes-proveedores";
-import cQuerysSQL from "../querys/querysSQL";
+import { getConnection, sql } from "../config/db.js";
+import { cCliente, cProveedor } from "../models/clientes-proveedores.js";
+import { cQuerysSQL } from "../querys/querysSQL.js";
 
 /**
  * @param {number} codCliente
@@ -21,11 +21,24 @@ export const getCliente = async (codCliente) => {
   }
 };
 
-export const getClientes = async () => {
+export const getClientes = async (page, limit) => {
   try {
     const pool = await getConnection();
-    const clientes = await pool.request().query(cQuerysSQL.getClientes);
-    return clientes.recordset.map((cliente) => new cCliente(cliente));
+    const offset = (page - 1) * limit;
+
+    const clientes = await pool
+      .request()
+      .input("OFFSET", sql.Int, offset)
+      .input("LIMIT", sql.Int, limit)
+      .query(cQuerysSQL.getClientes);
+
+    return {
+      clientes: clientes.recordset.map((cliente) => new cCliente(cliente)),
+      totalItems: clientes.recordset.length,
+      totalPages: Math.ceil(clientes.recordset.length / limit),
+      currentPage: page,
+      limit,
+    };
   } catch (error) {
     console.error("Error en getClientes:", error.message);
     throw error;
