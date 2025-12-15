@@ -12,13 +12,11 @@ export class cFacturaVenta {
       razonSocial: dbHeader.RAZONSOCIAL || dbHeader.NOMBRECLIENTE,
       rifCliente: dbHeader.NIF20,
       direccion: dbHeader.DIRECCION1,
-      codigoScim: dbHeader.CODSCIM || "",
+      codigoScim: dbHeader.CODSICM || "",
     };
 
     this.totalNetoBs = Number(dbHeader.TOTALNETO_BS) || 0;
     this.totalNetoUsd = Number(dbHeader.TOTALNETO_USD) || 0;
-
-    this.totalNeto = this.totalNetoUsd;
 
     this.items = dbItems.map((item) => new cItemFacturaVenta(item));
   }
@@ -34,7 +32,8 @@ export class cItemFacturaVenta {
     this.refProveedor = dbItem.REFERENCIA || "SIN REFERENCIA";
     this.descripcion = dbItem.DESCRIPCION;
     this.cantidad = Number(dbItem.CANTIDAD) || 0;
-    this.precio = Number(dbItem.PRECIO) || 0;
+    this.precioBs = Number(dbItem.PRECIOBS) || 0;
+    this.precioUsd = Number(dbItem.PRECIOUSD) || 0;
 
     this.codBarras = dbItem.CODBARRAS || "SIN CODBARRAS";
 
@@ -67,13 +66,11 @@ export class cFacturaCompra {
       razonSocial: dbHeader.NOMPROVEEDOR,
       rif: dbHeader.NIF20,
       direccion: dbHeader.DIRECCION1,
-      codigoScim: dbHeader.CODSCIM || null,
+      codigoScim: dbHeader.CODSICM || null,
     };
 
     this.totalNetoBs = Number(dbHeader.TOTALNETO_BS) || 0;
     this.totalNetoUsd = Number(dbHeader.TOTALNETO_USD) || 0;
-
-    this.totalNeto = this.totalNetoUsd;
 
     this.items = dbItems.map((item) => new cItemFacturaCompra(item));
   }
@@ -84,7 +81,8 @@ export class cItemFacturaCompra {
     this.codArticulo = dbItem.CODARTICULO;
     this.descripcion = dbItem.DESCRIPCION;
     this.cantidad = Number(dbItem.CANTIDAD) || 0;
-    this.precio = Number(dbItem.PRECIO) || 0;
+    this.precioBs = Number(dbItem.PRECIOBS) || 0;
+    this.precioUsd = Number(dbItem.PRECIOUSD) || 0;
     this.codBarras = dbItem.CODBARRAS || "SIN CODBARRAS";
 
     this.talla = dbItem.TALLA ? dbItem.TALLA.trim() : ".";

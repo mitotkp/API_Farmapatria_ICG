@@ -9,7 +9,7 @@ export class cCliente {
     this.provincia = dbCliente.PROVINCIA;
     this.pais = dbCliente.PAIS;
     this.telefono = dbCliente.TELEFONO || dbCliente.TELEFONO1;
-    this.codigoScim = dbCliente.CODSCIM;
+    this.codigoScim = dbCliente.CODSICM;
   }
 }
 
@@ -24,6 +24,6 @@ export class cProveedor {
     this.provincia = dbProveedor.PROVINCIA;
     this.pais = dbProveedor.PAIS;
     this.telefono = dbProveedor.TELEFONO || dbProveedor.TELEFONO1;
-    this.codigoScim = dbProveedor.CODSCIM;
+    this.codigoScim = dbProveedor.CODSICM;
   }
 }

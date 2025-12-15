@@ -13,5 +13,6 @@ export class cArticulo {
     this.stock = dbArticulo.STOCK;
     this.tafiraventa = dbArticulo.TAFIRAVENTA;
     this.costeArticulo = dbArticulo.COSTE;
+    this.codigoScim = dbArticulo.CODSICM || null;
   }
 }
