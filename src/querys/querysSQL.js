@@ -92,7 +92,11 @@ export class cQuerysSQL {
 
   static getCliente = `SELECT * FROM CLIENTES WHERE CODCLIENTE = @CODCLIENTE`;
 
+  static getCountClientes = `SELECT COUNT(*) as total FROM CLIENTES`;
+
   static getProveedores = `SELECT * FROM PROVEEDORES ORDER BY CODPROVEEDOR OFFSET @OFFSET ROWS FETCH NEXT @LIMIT ROWS ONLY`;
+
+  static getCountProveedores = `SELECT COUNT(*) as total FROM PROVEEDORES`;
 
   static getProveedor = `SELECT * FROM PROVEEDORES WHERE CODPROVEEDOR = @CODPROVEEDOR`;
 }

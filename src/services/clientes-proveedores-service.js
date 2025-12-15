@@ -32,10 +32,15 @@ export const getClientes = async (page, limit) => {
       .input("LIMIT", sql.Int, limit)
       .query(cQuerysSQL.getClientes);
 
+    const totalClientes = await pool
+      .request()
+      .query(cQuerysSQL.getCountClientes);
+    const totalRecords = totalClientes.recordset[0].total;
+
     return {
       clientes: clientes.recordset.map((cliente) => new cCliente(cliente)),
-      totalItems: clientes.recordset.length,
-      totalPages: Math.ceil(clientes.recordset.length / limit),
+      totalItems: totalRecords,
+      totalPages: Math.ceil(totalRecords / limit),
       currentPage: page,
       limit,
     };
@@ -45,11 +50,31 @@ export const getClientes = async (page, limit) => {
   }
 };
 
-export const getProveedores = async () => {
+export const getProveedores = async (page, limit) => {
   try {
     const pool = await getConnection();
-    const proveedores = await pool.request().query(cQuerysSQL.getProveedores);
-    return proveedores.recordset.map((proveedor) => new cProveedor(proveedor));
+    const offset = (page - 1) * limit;
+
+    const proveedores = await pool
+      .request()
+      .input("OFFSET", sql.Int, offset)
+      .input("LIMIT", sql.Int, limit)
+      .query(cQuerysSQL.getProveedores);
+
+    const totalProveedores = await pool
+      .request()
+      .query(cQuerysSQL.getCountProveedores);
+    const totalRecords = totalProveedores.recordset[0].total;
+
+    return {
+      proveedores: proveedores.recordset.map(
+        (proveedor) => new cProveedor(proveedor)
+      ),
+      totalItems: totalRecords,
+      totalPages: Math.ceil(totalRecords / limit),
+      currentPage: page,
+      limit,
+    };
   } catch (error) {
     console.error("Error en getProveedores:", error.message);
     throw error;

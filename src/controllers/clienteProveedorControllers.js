@@ -7,13 +7,8 @@ import {
 
 export class cClienteProveedorControllers {
   static clientes = async (req, res) => {
-    console.log(req.query.page);
-    console.log(req.query.limit);
-
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 40;
-
-    console.log(page, limit);
 
     try {
       const clientes = await getClientes(page, limit);
@@ -44,8 +39,18 @@ export class cClienteProveedorControllers {
 
   static proveedores = async (req, res) => {
     try {
-      const proveedores = await getProveedores();
-      res.json(proveedores);
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 40;
+
+      const proveedores = await getProveedores(page, limit);
+      res.status(200).json({
+        ok: true,
+        proveedores: proveedores.proveedores,
+        page,
+        limit,
+        totalItems: proveedores.totalItems,
+        totalPages: proveedores.totalPages,
+      });
     } catch (error) {
       console.error("Error al obtener proveedores:", error);
       res.status(500).json({ error: "Error al obtener proveedores" });
