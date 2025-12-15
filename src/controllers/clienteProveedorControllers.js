@@ -10,8 +10,8 @@ export class cClienteProveedorControllers {
     console.log(req.query.page);
     console.log(req.query.limit);
 
-    const page = parseInt(req.query.page);
-    const limit = parseInt(req.query.limit);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 40;
 
     console.log(page, limit);
 
@@ -19,7 +19,7 @@ export class cClienteProveedorControllers {
       const clientes = await getClientes(page, limit);
       res.status(200).json({
         ok: true,
-        clientes,
+        clientes: clientes.clientes,
         page,
         limit,
         totalItems: clientes.totalItems,
