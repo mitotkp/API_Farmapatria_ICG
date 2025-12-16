@@ -109,7 +109,7 @@ export class cQuerysSQL {
         ART.DESCRIPCION,
         (ISNULL(AFP.DESCSICM, '')) AS DESCRIPCIONSCIM,
         ART.REFPROVEEDOR,
-        ACL.CODBARRAS, 
+        ACL.CODBARRAS
     FROM 
         ARTICULOS ART 
         LEFT JOIN ARTICULOSLIN ACL ON ART.CODARTICULO = ACL.CODARTICULO
@@ -163,7 +163,7 @@ export class cQuerysSQL {
   `;
 
   static contarArticulos = `
-    SELECT COUNT(*) as Total
+    SELECT COUNT(*) as total
     FROM ARTICULOS 
     WHERE (@BUSQUEDA IS NULL OR DESCRIPCION LIKE '%' + @BUSQUEDA + '%' OR CODARTICULO = @BUSQUEDA)
   `;

@@ -3,7 +3,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { getConnection, sql } from "../config/db.js";
 import { cArticulo } from "../models/articulos.js";
-import cQuerysSQL from "../querys/querysSQL.js";
+import { cQuerysSQL } from "../querys/querysSQL.js";
 import soap from "soap";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -42,6 +42,12 @@ export const consultarArticuloFarmaPatria = async (referencia) => {
 
 export const listarArticulos = async (busqueda, page, limit) => {
   const offset = (page - 1) * limit;
+  console.log("Esto es lo que llega al servicio: ", busqueda, page, limit);
+
+  if (!busqueda) busqueda = null;
+  if (!page) page = 1;
+  if (!limit) limit = 30;
+
   const pool = await getConnection();
 
   const result = await pool
@@ -54,7 +60,9 @@ export const listarArticulos = async (busqueda, page, limit) => {
   const total = await pool
     .request()
     .input("BUSQUEDA", sql.NVarChar, busqueda)
-    .query(cQuerysSQL.getCountArticulos);
+    .query(cQuerysSQL.contarArticulos);
+
+  console.log("Total de articulos: ", total.recordset[0].total);
 
   return {
     data: result.recordset,
@@ -71,5 +79,16 @@ export const getArtiuloPorCodigo = async (codArticulo) => {
     .request()
     .input("CODARTICULO", sql.Int, codArticulo)
     .query(cQuerysSQL.getArticuloPorCodigo);
+  return result.recordset[0];
+};
+
+export const mapearArticulo = async (codArticulo, codigoSICM, descGobierno) => {
+  const pool = await getConnection();
+  const result = await pool
+    .request()
+    .input("CODARTICULO", sql.Int, codArticulo)
+    .input("CODIGO_SICM", sql.NVarChar, codigoSICM)
+    .input("DESC_GOBIERNO", sql.NVarChar, descGobierno)
+    .query(cQuerysSQL.mapearArticulos);
   return result.recordset[0];
 };
