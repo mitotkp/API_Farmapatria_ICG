@@ -11,14 +11,16 @@ const __dirname = path.dirname(__filename);
 
 dotenv.config({ path: path.join(__dirname, "../../.env") });
 
-const WSDL_URL = process.env.WSDL_URL;
-const TOKEN = process.env.SCIM_TOKEN;
+const SICM_WSDL = process.env.SICM_WSDL || "http://sicm.gob.ve/sicm.php?wsdl";
+const SICM_TOKEN =
+  process.env.SICM_TOKEN ||
+  "M8kizSTxyupJt5olTQo6WA5d4NVq0v1r5ZJWYjK5r9W80KJbssIX+F1sfTo56gG8hkKu5xCJQ1DeUWlwojiU5B";
 
 export const consultarArticuloFarmaPatria = async (referencia) => {
   try {
-    const codSeguridad = TOKEN;
+    const codSeguridad = SICM_TOKEN;
 
-    const client = await soap.createClient(WSDL_URL);
+    const client = await soap.createClient(SICM_WSDL);
 
     const args = {
       codSeguridad,
