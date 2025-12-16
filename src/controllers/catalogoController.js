@@ -3,6 +3,9 @@ import {
   listarArticulos,
   getArtiuloPorCodigo,
   mapearArticulo,
+  sincronizarArticulos,
+  sincronizadorArticulos,
+  obtenerEstadoSincronizacion,
 } from "../services/catalogo-service.js";
 
 export class cCatalogoController {
@@ -63,6 +66,28 @@ export class cCatalogoController {
     } catch (error) {
       console.error("Error al mapear articulo:", error);
       res.status(500).json({ error: "Error al mapear articulo" });
+    }
+  };
+
+  static iniciarSincronizacion = async (req, res) => {
+    try {
+      const resultado = await sincronizadorArticulos();
+      res.json({ ok: true, ...resultado });
+    } catch (error) {
+      console.error("Error al iniciar sincronizacion:", error);
+      res.status(500).json({ error: "Error al iniciar sincronizacion" });
+    }
+  };
+
+  static obtenerEstadoSincronizacion = async (req, res) => {
+    try {
+      const estado = obtenerEstadoSincronizacion();
+      res.json({ ok: true, ...estado });
+    } catch (error) {
+      console.error("Error al obtener estado de sincronizacion:", error);
+      res
+        .status(500)
+        .json({ error: "Error al obtener estado de sincronizacion" });
     }
   };
 }

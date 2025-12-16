@@ -125,6 +125,22 @@ export class cQuerysSQL {
     FETCH NEXT @LIMIT ROWS ONLY
   `;
 
+  static getArticulosSinVincular = `
+    SELECT TOP (@LIMIT)
+        A.CODARTICULO, 
+        A.DESCRIPCION, 
+        A.REFPROVEEDOR AS REFERENCIA
+    FROM 
+        ARTICULOS A
+        LEFT JOIN ARTICULOSFARMAPATRIA AFP ON A.CODARTICULO = AFP.CODARTICULO
+    WHERE 
+        AFP.CODARTICULO IS NULL      
+        AND A.REFPROVEEDOR IS NOT NULL  
+        AND LEN(A.REFPROVEEDOR) > 5  
+    ORDER BY 
+        A.CODARTICULO ASC
+  `;
+
   static getArticuloDetalle = `
     SELECT 
         ART.CODARTICULO,
