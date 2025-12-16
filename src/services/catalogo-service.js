@@ -25,8 +25,11 @@ const timer = (ms) => new Promise((res) => setTimeout(res, ms));
 export const consultarArticuloFarmaPatria = async (referencia) => {
   try {
     const codSeguridad = SICM_TOKEN;
-    const client = await soap.createClientAsync(SICM_WSDL);
-    const args = { codSeguridad, referencia };
+    const client = await soap.createClientAsync(SICM_WSDL, {
+      wsdl_options: { timeout: 10000 },
+    });
+
+    const args = { cod_seguridad: codSeguridad, cod_barras: referencia };
 
     const result = await client.getproductoAsync(args);
 
@@ -143,8 +146,12 @@ export const sincronizarArticulos = async (cantidad) => {
     for (const articulo of lista) {
       const { CODARTICULO, REFERENCIA } = articulo;
 
+      console.log(`Procesando artículo ${CODARTICULO}: ${REFERENCIA}`);
+
       try {
         const resultadoSoap = await consultarArticuloFarmaPatria(REFERENCIA);
+
+        console.log(resultadoSoap);
 
         if (resultadoSoap.ok) {
           await mapearArticulo(
@@ -153,13 +160,15 @@ export const sincronizarArticulos = async (cantidad) => {
             resultadoSoap.respuesta.DESCRIPCIONSCIM
           );
           reporte.exitosos++;
-        } else if (!resultadoSoap.ok && !resultadoSoap.error) {
-          await mapearArticulo(CODARTICULO, null, "NO ENCONTRADO EN SICM");
-          reporte.fallidos++;
+        } else if (resultadoSoap.error) {
+          console.warn(`Error de red en ${REFERENCIA}: ${resultadoSoap.error}`);
         } else {
-          console.warn(
-            `Salto por error de red en ${REFERENCIA}: ${resultadoSoap.error}`
+          await mapearArticulo(
+            CODARTICULO,
+            null,
+            "NO ENCONTRADO EN FARMAPATRIA"
           );
+          reporte.fallidos++;
         }
       } catch (errItem) {
         console.error(`Error procesando item ${CODARTICULO}:`, errItem);
