@@ -53,12 +53,16 @@ export const consultarArticuloFarmaPatria = async (referencia) => {
       nombreProducto.length > 2 &&
       !nombreProducto.includes("Error");
 
+    let descripcionLimpia = nombreProducto
+      ? nombreProducto.trim()
+      : "Sin Descripción";
+
     return {
       ok: existe,
       consultado: referencia,
       respuesta: {
         CODIGO_SICM: referencia,
-        DESCRIPCIONSCIM: nombreProducto || "Sin Descripción",
+        DESCRIPCIONSCIM: descripcionLimpia,
       },
     };
   } catch (error) {
@@ -158,10 +162,15 @@ export const sincronizarArticulos = async (cantidad) => {
         console.log(resultadoSoap);
 
         if (resultadoSoap.ok) {
+          let descripcionLimpia =
+            resultadoSoap.respuesta.DESCRIPCIONSCIM.trim() || "Sin Descripción";
+
+          const descGobiernoSafe = descripcionLimpia.substring(0, 255);
+
           await mapearArticulo(
             CODARTICULO,
             resultadoSoap.respuesta.CODIGO_SICM,
-            resultadoSoap.respuesta.DESCRIPCIONSCIM
+            descGobiernoSafe
           );
           reporte.exitosos++;
         } else if (resultadoSoap.error) {
