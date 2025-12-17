@@ -41,7 +41,11 @@ export const consultarArticuloFarmaPatria = async (referencia) => {
     } else if (typeof rawData === "string") {
       nombreProducto = rawData;
     } else if (rawData && rawData.result) {
-      nombreProducto = rawData.result;
+      if (typeof rawData.result === "object" && rawData.result.$value) {
+        nombreProducto = rawData.result.$value;
+      } else {
+        nombreProducto = rawData.result;
+      }
     }
 
     const existe =
