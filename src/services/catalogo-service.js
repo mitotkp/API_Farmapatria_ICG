@@ -251,3 +251,12 @@ export const mapearArticulo = async (codArticulo, codigoSICM, descGobierno) => {
 export const obtenerEstadoSincronizacion = () => {
   return estadoSincronizacion;
 };
+
+export const validarArticuloFp = async (codArticulo) => {
+  const pool = await getConnection();
+  const result = await pool
+    .request()
+    .input("CODARTICULO", sql.Int, codArticulo)
+    .query(cQuerysSQL.validarArticuloFP);
+  return result.recordset[0]?.CODSICM;
+};

@@ -254,4 +254,17 @@ export class cQuerysSQL {
         INSERT (CODPROVEEDOR, RIFPROVEEDOR, CODSICM, NOMPROVEEDOR, ESTATUS)
 	    VALUES (@CODIGO, @RIF, @SICM, @NOMBRE, @ESTATUS); 
   `;
+
+  static obtenerClienteFP = `
+    SELECT
+        *
+    FROM 
+        FARMAPATRIACLIENTES
+    WHERE 
+        REPLACE(REPLACE(RIFCLIENTE, '-',''), '.','') = REPLACE(REPLACE(@RIF, '-',''), '.','')
+  `;
+
+  static validarArticuloFP = `
+    SELECT CODSICM FROM ARTICULOSFARMAPATRIA WHERE CODARTICULO = @CODARTIICULO 
+  `;
 }

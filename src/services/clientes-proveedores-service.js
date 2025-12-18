@@ -351,6 +351,20 @@ export const getCliente = async (codCliente) => {
   }
 };
 
+export const obtenerClienteFP = async (rif) => {
+  try {
+    const pool = await getConnection();
+    const cliente = await pool
+      .request()
+      .input("RIF", sql.VarChar, rif)
+      .query(cQuerysSQL.obtenerClienteFP);
+    return (codSicmProd = cliente.recordset[0]?.CODSICM);
+  } catch (error) {
+    console.error("Error en obtenerClienteFP:", error.message);
+    throw error;
+  }
+};
+
 export const getClientes = async (page, limit) => {
   try {
     const pool = await getConnection();

@@ -4,6 +4,7 @@ import "dotenv/config";
 import facturaRoutes from "./routes/facturaRoutes.js";
 import clienteProveedorRoutes from "./routes/clienteProveedorRoutes.js";
 import catalogoRoutes from "./routes/catalogoRoutes.js";
+import guiaRoutes from "./routes/guiaRoutes.js";
 const app = express();
 
 app.use(cors());
@@ -18,6 +19,7 @@ app.get("/", (req, res) => {
 app.use("/api/facturas", facturaRoutes);
 app.use("/api/clientesProveedores", clienteProveedorRoutes);
 app.use("/api/catalogo", catalogoRoutes);
+app.use("/api/guia", guiaRoutes);
 
 app.listen(port, () => {
   console.log(`Servicio del API corriendo en http://localhost:${port}`);
