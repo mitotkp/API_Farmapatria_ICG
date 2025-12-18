@@ -115,7 +115,7 @@ const ejecutarSincronizacion = async () => {
         estadoSincronizacion.ejecutando = false;
         estadoSincronizacion.ultimoMensaje =
           "Sincronización finalizada correctamente.";
-        console.log("WORKER: Trabajo terminado.");
+        console.log("Trabajo terminado.");
       } else {
         await timer(2000);
       }

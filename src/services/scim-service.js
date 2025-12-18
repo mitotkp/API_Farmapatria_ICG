@@ -2,7 +2,7 @@ import soap from "soap";
 import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
-import { getConnection } from "../config/db.js";
+//import { getConnection } from "../config/db.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -12,21 +12,73 @@ dotenv.config({ path: path.join(__dirname, "../../.env") });
 const SICM_WSDL = process.env.SICM_WSDL || "http://sicm.gob.ve/sicm.php?wsdl";
 const SICM_TOKEN = process.env.SICM_TOKEN;
 
+const extraerRespuesta = (respuesta) => {
+  const data = respuesta[0]?.return || respuesta[0];
+  if (data && data.respuesta && data.resultado.$value)
+    return data.resultado.$value;
+  if (data && data.respuesta && data.resultado) return data.resultado;
+
+  return data;
+};
+
 export const verificarRif = async (rif) => {
   try {
-    const codSeguridad = SICM_TOKEN;
+    if (!rif) return { error: "El RIF es obligatorio" };
 
-    const client = await soap.createClientAsync(SICM_WSDL);
+    const formatRif = rif.toString().toUpperCase().replace(/-/g, "");
+    const client = await soap.createClientAsync(SICM_WSDL, {
+      wsdl_options: { timeout: 60000 },
+      timeout: 60000,
+    });
+
+    //console.log("formatRif", formatRif);
 
     const args = {
-      cod_seguridad: codSeguridad,
-      rif,
+      cod_seguridad: SICM_TOKEN,
+      rif: formatRif,
     };
 
     const result = await client.check_rifAsync(args);
-    const respuesta = result[0]?.return || result[0];
+    const xmlRespuesta = extraerRespuesta(result);
 
-    return respuesta;
+    let xmlString = "";
+    if (typeof xmlRespuesta === "string") {
+      xmlString = xmlRespuesta;
+    } else if (xmlRespuesta && typeof xmlRespuesta === "object") {
+      xmlString = JSON.stringify(xmlRespuesta);
+    } else {
+      xmlString = JSON.stringify(xmlRespuesta);
+    }
+
+    let codigo = null;
+    let nombre = null;
+
+    //console.log("xmlRespuesta", xmlRespuesta);
+
+    const matchCodigo = xmlString.match(/<cod_sicm>(\d+)<\/cod_sicm>/);
+    const matchNombre = xmlString.match(/<razon>([^<]+)<\/razon>/);
+
+    if (matchCodigo) {
+      codigo = matchCodigo[1];
+    }
+
+    if (matchNombre) {
+      nombre = matchNombre[1];
+    }
+
+    if (codigo) {
+      return {
+        ok: true,
+        cod_sicm: codigo,
+        nombre: nombre,
+        rifConsultado: formatRif,
+      };
+    }
+
+    return {
+      ok: false,
+      error: "RIF no encontrado",
+    };
   } catch (error) {
     console.error("Error al verificar el RIF:", error);
     throw error;
