@@ -30,7 +30,26 @@ const mapearCliente = async (codCliente, rif, scim, nombreCliente, estatus) => {
   return true;
 };
 
-export const sincronizadorClientes = async () => {
+const mapearProveedor = async (
+  codProveedor,
+  rif,
+  scim,
+  nombreProveedor,
+  estatus
+) => {
+  const pool = await getConnection();
+  await pool
+    .request()
+    .input("CODIGO", sql.Int, codProveedor)
+    .input("RIF", sql.VarChar, rif)
+    .input("SICM", sql.VarChar, scim)
+    .input("NOMBRE", sql.VarChar, nombreProveedor)
+    .input("ESTATUS", sql.VarChar, estatus)
+    .query(cQuerysSQL.insertarMapeoProveedor);
+  return true;
+};
+
+export const sincronizador = async (tipo) => {
   if (estadoSincronizacion.ejecutando) {
     return {
       iniciado: false,
@@ -41,6 +60,32 @@ export const sincronizadorClientes = async () => {
   estadoSincronizacion.ejecutando = true;
   estadoSincronizacion.progreso = 0;
   estadoSincronizacion.ultimoMensaje = "Inicianco sincronización...";
+
+  ejecutarSincronizacion(tipo).catch((error) => {
+    console.error("Error en sincronización:", error.message);
+    estadoSincronizacion.ejecutando = false;
+    estadoSincronizacion.ultimoMensaje =
+      "Error en sincronización: " + error.message;
+  });
+
+  return {
+    iniciado: true,
+    mensaje: "Sincronización iniciada en segundo plano",
+  };
+};
+
+export const sincronizadorProveedores = async () => {
+  if (estadoSincronizacion.ejecutando) {
+    return {
+      iniciado: false,
+      mensaje: "Ya se está ejecutando la sincronización",
+    };
+  }
+
+  estadoSincronizacion.ejecutando = true;
+  estadoSincronizacion.progreso = 0;
+  estadoSincronizacion.ultimoMensaje =
+    "Inicianco sincronización de proveedores...";
 
   ejecutarSincronizacion().catch((error) => {
     console.error("Error en sincronización:", error.message);
@@ -55,7 +100,7 @@ export const sincronizadorClientes = async () => {
   };
 };
 
-const ejecutarSincronizacion = async () => {
+const ejecutarSincronizacion = async (tipo) => {
   const BATCH_SIZE = 50;
   let terminar = false;
 
@@ -63,7 +108,12 @@ const ejecutarSincronizacion = async () => {
 
   while (!terminar && estadoSincronizacion.ejecutando) {
     try {
-      const resultado = await sincronizarClientes(BATCH_SIZE);
+      let resultado;
+      if (tipo === "clientes") {
+        resultado = await sincronizarClientes(BATCH_SIZE);
+      } else {
+        resultado = await sincronizarProveedores(BATCH_SIZE);
+      }
 
       estadoSincronizacion.progreso += resultado.procesados || 0;
       estadoSincronizacion.ultimoMensaje = `Total procesados: ${estadoSincronizacion.progreso}. Último lote: ${resultado.exitosos} / ${resultado.fallidos}.`;
@@ -138,26 +188,35 @@ export const sincronizarClientes = async (cantidad) => {
         //console.log(resultadoSoap.nombre);
         //console.log(clienteICG);
         //console.log("Propiedad: ", clienteICG[0].razonSocial);
+        const rifFinal = (
+          resultadoSoap.rifConsultado ||
+          FORMATRIF ||
+          ""
+        ).trim();
 
-        let nombreCliente = resultadoSoap.nombre.trim() || "Sin nombre";
-        let sicm = resultadoSoap.cod_sicm || "Sin sicm";
-        let rif = resultadoSoap.rifConsultado.trim() || "Sin rif";
+        const sicmFinal = resultadoSoap.cod_sicm || null;
 
-        if (resultadoSoap.ok && clienteICG.length !== 0) {
+        const nombreFinal = (
+          resultadoSoap.nombre ||
+          NOMBRECLIENTE ||
+          "Sin Nombre"
+        ).trim();
+
+        if (resultadoSoap.ok) {
           await mapearCliente(
             clienteICG[0].codCliente,
-            rif,
-            sicm,
-            nombreCliente,
+            rifFinal,
+            sicmFinal,
+            nombreFinal,
             "ENCONTRADO "
           );
           reporte.exitosos++;
         } else {
           await mapearCliente(
             clienteICG[0].codCliente,
-            rif,
-            sicm,
-            nombreCliente,
+            rifFinal,
+            sicmFinal,
+            nombreFinal,
             "NO ENCONTRADO"
           );
           reporte.fallidos++;
@@ -174,6 +233,100 @@ export const sincronizarClientes = async (cantidad) => {
     }
   } catch (error) {
     console.error("Error en sincronizarClientes:", error.message);
+    return { ...reporte, fin: true, error: error.message };
+  }
+
+  return reporte;
+};
+
+export const sincronizarProveedores = async (cantidad) => {
+  let reporte = {
+    procesados: 0,
+    exitosos: 0,
+    fallidos: 0,
+    fin: false,
+  };
+  let pool;
+
+  try {
+    pool = await getConnection();
+    const proveedores = await pool
+      .request()
+      .input("LIMIT", sql.Int, cantidad)
+      .query(cQuerysSQL.getProveedoresSinMapear);
+
+    const lista = proveedores.recordset;
+
+    if (!lista || lista.length === 0) {
+      return {
+        ...reporte,
+        fin: true,
+        mensaje: "No hay proveedores para sincronizar",
+      };
+    }
+
+    for (const proveedor of lista) {
+      const { CODPROVEEDOR, FORMATRIF, NOMPROVEEDOR } = proveedor;
+
+      console.log(`Procesando proveedor: ${CODPROVEEDOR} - ${NOMPROVEEDOR}`);
+      console.log(`RIF: ${FORMATRIF}`);
+
+      try {
+        const proveedorICG = await getProveedor(CODPROVEEDOR);
+        const resultadoSoap = await verificarRif(FORMATRIF);
+
+        if (!proveedorICG || proveedorICG.length === 0) {
+          return {
+            ...reporte,
+            fin: true,
+            mensaje: "No hay más proveedores para sincronizar",
+          };
+        }
+
+        const rifFinal = (
+          resultadoSoap.rifConsultado ||
+          FORMATRIF ||
+          ""
+        ).trim();
+
+        const sicmFinal = resultadoSoap.cod_sicm || null;
+
+        const nombreFinal = (
+          resultadoSoap.nombre ||
+          NOMPROVEEDOR ||
+          "Sin Nombre"
+        ).trim();
+
+        if (resultadoSoap.ok) {
+          await mapearProveedor(
+            proveedorICG[0].codProveedor,
+            rifFinal,
+            sicmFinal,
+            nombreFinal,
+            "ENCONTRADO "
+          );
+          reporte.exitosos++;
+        } else {
+          await mapearProveedor(
+            proveedorICG[0].codProveedor,
+            rifFinal,
+            sicmFinal,
+            nombreFinal,
+            "NO ENCONTRADO"
+          );
+          reporte.fallidos++;
+        }
+      } catch (error) {
+        console.error(
+          `Error al procesar proveedor ${CODPROVEEDOR}: ${error.message}`
+        );
+        reporte.fallidos++;
+      }
+      reporte.procesados++;
+      await timer(100);
+    }
+  } catch (error) {
+    console.error("Error en sincronizadorProveedores:", error.message);
     return { ...reporte, fin: true, error: error.message };
   }
 

@@ -3,8 +3,9 @@ import {
   getClientes,
   getProveedor,
   getProveedores,
-  sincronizadorClientes,
+  sincronizador,
   sincronizarClientes,
+  sincronizarProveedores,
   obtenerEstadoSincronizacion,
 } from "../services/clientes-proveedores-service.js";
 
@@ -73,7 +74,7 @@ export class cClienteProveedorControllers {
 
   static sincronizarClientes = async (req, res) => {
     try {
-      const resultado = await sincronizadorClientes();
+      const resultado = await sincronizador("clientes");
       res.json({ ok: true, ...resultado });
     } catch (error) {
       console.error("Error al sincronizar clientes:", error);
@@ -81,7 +82,17 @@ export class cClienteProveedorControllers {
     }
   };
 
-  static obtenerEstadoSincronizacionClientes = async (req, res) => {
+  static sincronizarProveedores = async (req, res) => {
+    try {
+      const resultado = await sincronizador("proveedores");
+      res.json({ ok: true, ...resultado });
+    } catch (error) {
+      console.error("Error al sincronizar proveedores:", error);
+      res.status(500).json({ error: "Error al sincronizar proveedores" });
+    }
+  };
+
+  static obtenerEstadoSincronizacion = async (req, res) => {
     try {
       const estado = obtenerEstadoSincronizacion();
       res.json({ ok: true, ...estado });

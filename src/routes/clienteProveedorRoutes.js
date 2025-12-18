@@ -11,8 +11,12 @@ router.post(
   "/sincronizarClientes",
   cClienteProveedorControllers.sincronizarClientes
 );
+router.post(
+  "/sincronizarProveedores",
+  cClienteProveedorControllers.sincronizarProveedores
+);
 router.get(
-  "/estadoSincronizacionClientes",
-  cClienteProveedorControllers.obtenerEstadoSincronizacionClientes
+  "/estadoSincronizacion",
+  cClienteProveedorControllers.obtenerEstadoSincronizacion
 );
 export default router;
