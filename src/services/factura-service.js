@@ -21,7 +21,15 @@ export const getFacturasVentas = async (page, limit) => {
     const total = await pool.query(cQuerysSQL.getCountFacturasVentas);
 
     const totalFacturas = total.recordset[0].total;
-    return { facturas: cabeceraFactura.recordset, total: totalFacturas };
+    return {
+      facturas: cabeceraFactura.recordset.map(
+        (factura) => new cFacturaVenta(factura)
+      ),
+      totalItems: totalFacturas,
+      totalPages: Math.ceil(totalFacturas / limit),
+      currentPage: page,
+      limit,
+    };
   } catch (error) {
     console.error("Error en getFacturasVentas:", error.message);
     throw error;
@@ -44,7 +52,15 @@ export const getFacturasCompras = async (page, limit) => {
       .query(cQuerysSQL.getCountFacturasCompras);
 
     const totalRecords = totalFacturas.recordset[0].total;
-    return { facturas: cabeceraFactura.recordset, total: totalRecords };
+    return {
+      facturas: cabeceraFactura.recordset.map(
+        (factura) => new cFacturaCompra(factura)
+      ),
+      totalItems: totalRecords,
+      totalPages: Math.ceil(totalRecords / limit),
+      currentPage: page,
+      limit,
+    };
   } catch (error) {
     console.error("Error en getFacturasCompras:", error.message);
     throw error;

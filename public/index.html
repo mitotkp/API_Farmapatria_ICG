@@ -7,12 +7,23 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .animate-fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .slide-enter-active, .slide-leave-active { transition: all 0.3s ease; max-height: 500px; overflow: hidden; }
+        .slide-enter-from, .slide-leave-to { max-height: 0; opacity: 0; }
+        .rotate-180 { transform: rotate(180deg); }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
+    </style>
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans">
 
     <div id="app" class="min-h-screen flex flex-col">
         
-        <nav class="bg-white shadow-sm border-b border-gray-200 px-6 py-3 flex justify-between items-center z-10">
+        <nav class="bg-white shadow-sm border-b border-gray-200 px-6 py-3 flex justify-between items-center z-20 relative">
             <div class="flex items-center gap-3">
                 <div class="bg-blue-700 text-white w-10 h-10 rounded-lg flex items-center justify-center shadow-md">
                     <i class="fas fa-network-wired"></i>
@@ -22,117 +33,231 @@
                     <p class="text-xs text-gray-500">Gestión de Guías SICM</p>
                 </div>
             </div>
-            <button @click="cargarDatos" class="text-gray-500 hover:text-blue-600 transition p-2 rounded-full hover:bg-gray-100">
-                <i class="fas fa-sync-alt" :class="{'fa-spin': loading}"></i>
-            </button>
+            
+            <div class="flex gap-2">
+                <button @click="mostrarModalManual = true" class="bg-blue-50 text-blue-700 hover:bg-blue-100 transition px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2">
+                    <i class="fas fa-keyboard"></i> Entrada Manual
+                </button>
+
+                <button @click="cargarDatos" class="text-gray-500 hover:text-blue-600 transition p-2 rounded-full hover:bg-gray-100">
+                    <i class="fas fa-sync-alt" :class="{'fa-spin': loading}"></i>
+                </button>
+            </div>
         </nav>
 
-        <main class="flex-1 p-6 max-w-7xl mx-auto w-full">
+        <main class="flex-1 p-4 md:p-6 max-w-7xl mx-auto w-full flex flex-col overflow-hidden">
             
-            <div class="flex flex-col md:flex-row justify-between items-end mb-6 gap-4 border-b border-gray-200 pb-1">
-                
-                <div class="flex space-x-6">
-                    <button 
-                        @click="cambiarTab('ventas')"
-                        class="pb-3 text-sm font-bold border-b-2 transition-colors flex items-center gap-2"
-                        :class="tabActual === 'ventas' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-400 hover:text-gray-600'">
-                        <i class="fas fa-shopping-cart"></i> Facturas de Venta
-                    </button>
-                    <button 
-                        @click="cambiarTab('compras')"
-                        class="pb-3 text-sm font-bold border-b-2 transition-colors flex items-center gap-2"
-                        :class="tabActual === 'compras' ? 'border-purple-600 text-purple-600' : 'border-transparent text-gray-400 hover:text-gray-600'">
-                        <i class="fas fa-truck-loading"></i> Facturas de Compra
-                    </button>
-                </div>
+            <div class="flex flex-wrap gap-2 mb-6 border-b border-gray-200 pb-1 overflow-x-auto">
+                <button @click="cambiarTab('ventas')" class="px-4 py-2 text-sm font-bold border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap" :class="tabActual === 'ventas' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-400 hover:text-gray-600'">
+                    <i class="fas fa-shopping-cart"></i> Ventas
+                </button>
+                <button @click="cambiarTab('compras')" class="px-4 py-2 text-sm font-bold border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap" :class="tabActual === 'compras' ? 'border-purple-600 text-purple-600' : 'border-transparent text-gray-400 hover:text-gray-600'">
+                    <i class="fas fa-truck-loading"></i> Compras
+                </button>
+                <div class="w-px h-6 bg-gray-300 mx-2 self-center hidden md:block"></div>
+                <button @click="cambiarTab('clientes')" class="px-4 py-2 text-sm font-bold border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap" :class="tabActual === 'clientes' ? 'border-green-600 text-green-600' : 'border-transparent text-gray-400 hover:text-gray-600'">
+                    <i class="fas fa-users"></i> Clientes
+                </button>
+                <button @click="cambiarTab('proveedores')" class="px-4 py-2 text-sm font-bold border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap" :class="tabActual === 'proveedores' ? 'border-orange-600 text-orange-600' : 'border-transparent text-gray-400 hover:text-gray-600'">
+                    <i class="fas fa-industry"></i> Proveedores
+                </button>
+                <button @click="cambiarTab('articulos')" class="px-4 py-2 text-sm font-bold border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap" :class="tabActual === 'articulos' ? 'border-teal-600 text-teal-600' : 'border-transparent text-gray-400 hover:text-gray-600'">
+                    <i class="fas fa-boxes"></i> Artículos
+                </button>
+            </div>
 
-                <div class="relative w-full md:w-72 mb-2">
+            <div class="flex justify-end mb-4">
+                <div class="relative w-full md:w-80">
                     <i class="fas fa-search absolute left-3 top-3 text-gray-400 text-xs"></i>
-                    <input v-model="filtro" type="text" placeholder="Buscar..." 
+                    <input v-model="filtro" @input="onSearchInput" type="text" placeholder="Buscar..." 
                         class="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:outline-none transition shadow-sm"
-                        :class="tabActual === 'ventas' ? 'focus:ring-blue-500 focus:border-blue-500' : 'focus:ring-purple-500 focus:border-purple-500'">
+                        :class="getBorderColor()">
                 </div>
             </div>
 
-            <div v-if="tabActual === 'ventas'" class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden animate-fade-in">
-                <table class="w-full text-left text-sm">
-                    <thead class="bg-blue-50 text-blue-800 uppercase text-xs font-bold tracking-wider">
-                        <tr>
-                            <th class="px-6 py-3">Emisión</th>
-                            <th class="px-6 py-3">Factura</th>
-                            <th class="px-6 py-3">Cliente</th>
-                            <th class="px-6 py-3 text-right">Total</th>
-                            <th class="px-6 py-3 text-center">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100">
-                        <tr v-for="factura in filtrados" :key="factura.identificador" class="hover:bg-gray-50 transition cursor-pointer" @click="toggleDetalle(factura)">
-                            <td class="px-6 py-3 text-gray-500">{{ formatearFecha(factura.FECHA) }}</td>
-                            <td class="px-6 py-3 font-medium">{{ factura.NUMSERIE }}-{{ factura.NUMFACTURA }}</td>
-                            <td class="px-6 py-3">
-                                <div class="font-bold text-gray-800">{{ factura.RAZONSOCIAL }}</div>
-                                <div class="text-xs text-gray-400">{{ factura.RIF }}</div>
-                            </td>
-                            <td class="px-6 py-3 text-right font-mono text-gray-600">{{ formatearMoneda(factura.TOTALNETO_BS) }}</td>
-                            <td class="px-6 py-3 text-center">
-                                <button @click.stop="prepararGuia(factura)" class="bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1 rounded-md text-xs font-semibold transition">
-                                    Generar Guía
-                                </button>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-                <div v-if="filtrados.length === 0" class="p-8 text-center text-gray-400 text-sm">No hay ventas recientes.</div>
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex-1 flex flex-col animate-fade-in relative">
+                
+                <div v-if="loading && !itemsDetalle.length" class="absolute inset-0 bg-white/80 z-20 flex items-center justify-center">
+                    <i class="fas fa-circle-notch fa-spin text-3xl text-gray-400"></i>
+                </div>
+
+                <div class="overflow-auto flex-1">
+                    
+                    <table v-if="['ventas', 'compras'].includes(tabActual)" class="w-full text-left text-sm">
+                        <thead :class="tabActual === 'ventas' ? 'bg-blue-50 text-blue-800' : 'bg-purple-50 text-purple-800'" class="uppercase text-xs font-bold tracking-wider sticky top-0 z-10">
+                            <tr>
+                                <th class="px-6 py-3 w-8"></th>
+                                <th class="px-6 py-3">{{ tabActual === 'ventas' ? 'Emisión' : 'Recepción' }}</th>
+                                <th class="px-6 py-3">Documento</th>
+                                <th class="px-6 py-3">{{ tabActual === 'ventas' ? 'Cliente' : 'Proveedor' }}</th>
+                                <th class="px-6 py-3 text-right">Total Bs</th>
+                                <th class="px-6 py-3 text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            <template v-for="item in listaFiltrada" :key="getKey(item)">
+                                <tr @click="toggleDetalle(item)" class="hover:bg-gray-50 transition cursor-pointer group">
+                                    <td class="px-6 py-4 text-center text-gray-400">
+                                        <i class="fas fa-chevron-down transition-transform duration-300" :class="expandedId === getKey(item) ? 'rotate-180 text-blue-600' : ''"></i>
+                                    </td>
+                                    <td class="px-6 py-4 text-gray-500 font-mono">{{ formatearFecha(item.fecha || item.FECHA || item.FECHAALBARAN) }}</td>
+                                    <td class="px-6 py-4 font-medium text-gray-900">
+                                        <span class="bg-gray-100 border border-gray-200 px-2 py-0.5 rounded text-xs mr-2">{{ item.numSerie || item.NUMSERIE }}</span>
+                                        {{ item.numFactura || item.NUMFACTURA }}
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="font-bold text-gray-800">{{ getEntidad(item).nombre }}</div>
+                                        <div class="text-xs text-gray-400">{{ getEntidad(item).rif }}</div>
+                                    </td>
+                                    <td class="px-6 py-4 text-right font-mono font-medium text-gray-700">{{ formatearMoneda(item.totalNetoBs || item.TOTALNETO_BS) }}</td>
+                                    <td class="px-6 py-4 text-center">
+                                        <button v-if="tabActual === 'ventas'" @click.stop="prepararGuia(item)" class="bg-blue-50 hover:bg-blue-100 text-blue-600 px-3 py-1.5 rounded-lg text-xs font-bold border border-blue-200 transition flex items-center justify-center mx-auto gap-2">
+                                            <i class="fas fa-paper-plane"></i> Guía
+                                        </button>
+                                        <span v-else class="text-xs text-gray-400 italic">Ver solo</span>
+                                    </td>
+                                </tr>
+                                <tr v-if="expandedId === getKey(item)" class="bg-gray-50/50 shadow-inner">
+                                    <td colspan="6" class="p-4 sm:px-12 sm:py-6">
+                                        <div v-if="cargandoDetalle" class="text-center text-gray-500"><i class="fas fa-circle-notch fa-spin mr-2"></i> Cargando...</div>
+                                        <div v-else class="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
+                                            <table class="w-full text-xs">
+                                                <thead class="bg-gray-100 text-gray-500 uppercase"><tr><th class="px-4 py-2">Cód</th><th class="px-4 py-2">Desc</th><th class="px-4 py-2 text-right">Cant</th><th class="px-4 py-2 text-right">Precio</th><th class="px-4 py-2 text-right">Total</th></tr></thead>
+                                                <tbody class="divide-y divide-gray-100">
+                                                    <tr v-for="p in itemsDetalle" :key="p.codArticulo||p.CODARTICULO">
+                                                        <td class="px-4 py-2 font-mono">{{ p.codArticulo||p.CODARTICULO }}</td>
+                                                        <td class="px-4 py-2">{{ p.descripcion||p.DESCRIPCION }}</td>
+                                                        <td class="px-4 py-2 text-right font-bold">{{ Number(p.cantidad||p.CANTIDAD||0) }}</td>
+                                                        <td class="px-4 py-2 text-right">{{ formatearMoneda(p.precioBs||p.PRECIOBS||0) }}</td>
+                                                        <td class="px-4 py-2 text-right font-medium">{{ formatearMoneda((p.cantidad||0)*(p.precioBs||0)) }}</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+
+                    <table v-if="tabActual === 'clientes'" class="w-full text-left text-sm">
+                        <thead class="bg-green-50 text-green-800 uppercase text-xs font-bold tracking-wider sticky top-0 z-10">
+                            <tr><th class="px-6 py-3">Código</th><th class="px-6 py-3">Razón Social</th><th class="px-6 py-3">Documento</th><th class="px-6 py-3">Dirección</th><th class="px-6 py-3 text-center">SICM</th></tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            <tr v-for="c in listaFiltrada" :key="c.codCliente" class="hover:bg-gray-50">
+                                <td class="px-6 py-3 font-mono text-gray-500">{{ c.codCliente }}</td>
+                                <td class="px-6 py-3 font-bold text-gray-800">{{ c.nombreCliente || c.razonSocial }}</td>
+                                <td class="px-6 py-3"><span class="bg-green-100 text-green-800 px-2 py-0.5 rounded text-xs font-medium">{{ c.rifCliente }}</span></td>
+                                <td class="px-6 py-3 text-xs text-gray-500 truncate max-w-xs" :title="c.direccion">{{ c.direccion }}</td>
+                                <td class="px-6 py-3 text-center"><i :class="c.codigoScim ? 'fas fa-check-circle text-green-500' : 'fas fa-minus-circle text-gray-300'"></i></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <table v-if="tabActual === 'proveedores'" class="w-full text-left text-sm">
+                        <thead class="bg-orange-50 text-orange-800 uppercase text-xs font-bold tracking-wider sticky top-0 z-10">
+                            <tr><th class="px-6 py-3">Código</th><th class="px-6 py-3">Proveedor</th><th class="px-6 py-3">RIF</th><th class="px-6 py-3">Dirección</th><th class="px-6 py-3 text-center">SICM</th></tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            <tr v-for="p in listaFiltrada" :key="p.codProveedor" class="hover:bg-gray-50">
+                                <td class="px-6 py-3 font-mono text-gray-500">{{ p.codProveedor}}</td>
+                                <td class="px-6 py-3 font-bold text-gray-800">{{ p.razonSocial }}</td>
+                                <td class="px-6 py-3"><span class="bg-orange-100 text-orange-800 px-2 py-0.5 rounded text-xs font-medium">{{ p.rifProveedor }}</span></td>
+                                <td class="px-6 py-3 text-xs text-gray-500 truncate max-w-xs">{{ p.direccion }}</td>
+                                <td class="px-6 py-3 text-center"><i :class="p.codigoScim ? 'fas fa-check-circle text-green-500' : 'fas fa-minus-circle text-gray-300'"></i></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <table v-if="tabActual === 'articulos'" class="w-full text-left text-sm">
+                        <thead class="bg-teal-50 text-teal-800 uppercase text-xs font-bold tracking-wider sticky top-0 z-10">
+                            <tr><th class="px-6 py-3">Código</th><th class="px-6 py-3">Ref. Prov</th><th class="px-6 py-3">Descripción</th><th class="px-6 py-3">Cód. Barras</th><th class="px-6 py-3 text-center">Mapeado</th></tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            <tr v-for="a in listaFiltrada" :key="a.CODARTICULO" class="hover:bg-gray-50">
+                                <td class="px-6 py-3 font-mono text-gray-500">{{ a.CODARTICULO }}</td>
+                                <td class="px-6 py-3 text-xs text-gray-500">{{ a.REFPROVEEDOR }}</td>
+                                <td class="px-6 py-3 font-medium text-gray-800">{{ a.DESCRIPCION }}</td>
+                                <td class="px-6 py-3 font-mono text-xs">{{ a.CODBARRAS }}</td>
+                                <td class="px-6 py-3 text-center">
+                                    <span v-if="a.codigoScim" class="text-xs bg-teal-100 text-teal-700 px-2 py-1 rounded-full font-bold">{{ a.codigoScim }}</span>
+                                    <span v-else class="text-xs text-gray-300 italic">--</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                </div>
+
+                <div v-if="!loading && listaFiltrada.length === 0" class="p-12 text-center text-gray-400 absolute inset-0 flex flex-col items-center justify-center">
+                    <div class="mb-2"><i class="fas fa-inbox text-4xl opacity-20"></i></div>
+                    <p class="text-sm">No se encontraron registros.</p>
+                </div>
             </div>
 
-            <div v-if="tabActual === 'compras'" class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden animate-fade-in">
-                <table class="w-full text-left text-sm">
-                    <thead class="bg-purple-50 text-purple-800 uppercase text-xs font-bold tracking-wider">
-                        <tr>
-                            <th class="px-6 py-3">Recepción</th>
-                            <th class="px-6 py-3">Documento</th>
-                            <th class="px-6 py-3">Proveedor</th>
-                            <th class="px-6 py-3 text-right">Total</th>
-                            <th class="px-6 py-3 text-center">Estado</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100">
-                        <tr v-for="compra in filtrados" :key="compra.identificador" class="hover:bg-gray-50 transition">
-                            <td class="px-6 py-3 text-gray-500">{{ formatearFecha(compra.FECHA) }}</td>
-                            <td class="px-6 py-3 font-medium">{{ compra.NUMSERIE }}-{{ compra.NUMFACTURA }}</td>
-                            <td class="px-6 py-3">
-                                <div class="font-bold text-gray-800">{{ compra.NOMBRECLIENTE }}</div> <div class="text-xs text-gray-400">{{ compra.RIF }}</div>
-                            </td>
-                            <td class="px-6 py-3 text-right font-mono text-gray-600">{{ formatearMoneda(compra.TOTALNETO_BS) }}</td>
-                            <td class="px-6 py-3 text-center">
-                                <span class="bg-gray-100 text-gray-500 px-2 py-1 rounded text-xs">Solo Visualizar</span>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-                <div v-if="filtrados.length === 0" class="p-8 text-center text-gray-400 text-sm">No hay compras recientes.</div>
+            <div class="mt-4 flex items-center justify-between bg-white px-4 py-3 rounded-lg border border-gray-200 shadow-sm">
+                <div class="text-sm text-gray-500">
+                    Página <span class="font-bold text-gray-800">{{ pagina }}</span> de <span class="font-bold text-gray-800">{{ totalPaginas }}</span>
+                </div>
+                <div class="flex gap-2">
+                    <button @click="cambiarPagina(-1)" :disabled="pagina <= 1 || loading" class="px-4 py-2 border rounded-lg text-sm font-medium hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition">
+                        <i class="fas fa-chevron-left mr-1"></i> Anterior
+                    </button>
+                    <button @click="cambiarPagina(1)" :disabled="pagina >= totalPaginas || loading" class="px-4 py-2 border rounded-lg text-sm font-medium hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition">
+                        Siguiente <i class="fas fa-chevron-right ml-1"></i>
+                    </button>
+                </div>
             </div>
 
         </main>
 
+        <div v-if="mostrarModalManual" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div class="bg-white rounded-xl shadow-2xl max-w-sm w-full overflow-hidden transform transition-all scale-100 p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="font-bold text-lg text-gray-800">Generación Manual</h3>
+                    <button @click="mostrarModalManual = false" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+                </div>
+                
+                <form @submit.prevent="enviarManual" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Serie</label>
+                        <input v-model="formManual.serie" type="text" placeholder="Ej: AB3T" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none uppercase" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Número</label>
+                        <input v-model="formManual.numero" type="text" placeholder="Ej: 4174" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" required>
+                    </div>
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg transition mt-2">
+                        Generar Guía
+                    </button>
+                </form>
+            </div>
+        </div>
+
         <div v-if="procesando" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-            <div class="bg-white rounded-xl p-6 shadow-xl text-center">
-                <i class="fas fa-circle-notch fa-spin text-3xl text-blue-600 mb-3"></i>
-                <p class="font-medium text-gray-700">Conectando con Farmapatria...</p>
+            <div class="bg-white rounded-xl p-8 shadow-2xl text-center">
+                <i class="fas fa-circle-notch fa-spin text-4xl text-blue-600 mb-4"></i>
+                <h3 class="font-bold text-lg text-gray-800">Procesando...</h3>
             </div>
         </div>
         
         <div v-if="resultado" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
-            <div class="bg-white rounded-xl shadow-2xl max-w-sm w-full overflow-hidden">
-                <div :class="`p-4 text-center ${resultado.ok ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`">
-                    <h3 class="font-bold text-lg">{{ resultado.ok ? '¡Éxito!' : 'Error' }}</h3>
+            <div class="bg-white rounded-xl shadow-2xl max-w-sm w-full overflow-hidden transform transition-all scale-100">
+                <div :class="`p-5 text-center ${resultado.ok ? 'bg-green-50' : 'bg-red-50'}`">
+                    <div :class="`mx-auto w-12 h-12 flex items-center justify-center rounded-full mb-3 ${resultado.ok ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`">
+                        <i :class="`fas ${resultado.ok ? 'fa-check' : 'fa-times'} text-xl`"></i>
+                    </div>
+                    <h3 class="font-bold text-lg text-gray-900">{{ resultado.ok ? '¡Exito!' : 'Error' }}</h3>
                 </div>
                 <div class="p-6 text-center">
-                    <p class="text-gray-600 text-sm mb-4">{{ resultado.msg }}</p>
+                    <p class="text-gray-600 text-sm mb-6">{{ resultado.msg }}</p>
                     <div v-if="resultado.ok && resultado.linkPDF">
-                         <a :href="resultado.linkPDF" target="_blank" class="block w-full bg-blue-600 text-white py-2 rounded-lg font-bold hover:bg-blue-700 transition">Ver PDF</a>
+                         <a :href="resultado.linkPDF" target="_blank" class="block w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-500/30">
+                            <i class="fas fa-file-pdf mr-2"></i> Descargar PDF
+                         </a>
                     </div>
-                    <button @click="resultado = null" class="mt-3 text-gray-500 hover:text-gray-700 text-sm underline">Cerrar</button>
+                    <button @click="resultado = null" class="mt-4 text-gray-400 hover:text-gray-600 text-sm font-medium transition">Cerrar</button>
                 </div>
             </div>
         </div>
@@ -140,37 +265,69 @@
     </div>
 
     <script>
-        const { createApp, ref, computed, onMounted, watch } = Vue;
+        const { createApp, ref, computed, onMounted, reactive } = Vue;
 
         createApp({
             setup() {
-                const tabActual = ref('ventas'); // 'ventas' o 'compras'
-                const listaVentas = ref([]);
-                const listaCompras = ref([]);
+                // Estados
+                const tabActual = ref('ventas');
+                const datos = ref([]);
                 const loading = ref(false);
                 const filtro = ref('');
                 const procesando = ref(false);
                 const resultado = ref(null);
+                
+                // Manual
+                const mostrarModalManual = ref(false);
+                const formManual = reactive({ serie: '', numero: '' });
 
-                // Cargar datos según el tab activo
+                // Paginación
+                const pagina = ref(1);
+                const limite = ref(40);
+                const totalPaginas = ref(1);
+
+                // Detalle
+                const expandedId = ref(null);
+                const itemsDetalle = ref([]);
+                const cargandoDetalle = ref(false);
+
+                let debounceTimer = null;
+
+                const endpoints = {
+                    ventas: '/api/facturas/obtenerFacturasVentas',
+                    compras: '/api/facturas/obtenerFacturasCompras',
+                    clientes: '/api/clientesProveedores/clientes',
+                    proveedores: '/api/clientesProveedores/proveedores',
+                    articulos: '/api/catalogo/articulos'
+                };
+
                 const cargarDatos = async () => {
                     loading.value = true;
+                    expandedId.value = null;
                     try {
-                        // Decidimos qué endpoint llamar
-                        const endpoint = tabActual.value === 'ventas' 
-                            ? '/api/facturas/obtenerFacturasVentas' 
-                            : '/api/facturas/obtenerFacturasCompras';
+                        const url = new URL(endpoints[tabActual.value], window.location.origin);
+                        url.searchParams.append('page', pagina.value);
+                        url.searchParams.append('limit', limite.value);
                         
-                        const res = await fetch(endpoint);
+                        if (tabActual.value === 'articulos' && filtro.value) {
+                            url.searchParams.append('search', filtro.value);
+                        }
+
+                        const res = await fetch(url);
                         const data = await res.json();
+                        
+                        let items = [];
+                        if (tabActual.value === 'ventas' || tabActual.value === 'compras') items = data.facturas;
+                        else if (tabActual.value === 'clientes') items = data.clientes;
+                        else if (tabActual.value === 'proveedores') items = data.proveedores;
+                        else if (tabActual.value === 'articulos') items = data.data || data.articulos;
 
-                        console.log(data);
-
-                        if (tabActual.value === 'ventas') listaVentas.value = data;
-                        else listaCompras.value = data;
+                        datos.value = items || [];
+                        totalPaginas.value = data.totalPages || 1;
 
                     } catch (e) {
-                        console.error("Error cargando datos:", e);
+                        console.error("Error:", e);
+                        datos.value = [];
                     } finally {
                         loading.value = false;
                     }
@@ -178,59 +335,153 @@
 
                 const cambiarTab = (nuevoTab) => {
                     tabActual.value = nuevoTab;
-                    filtro.value = ''; // Limpiar filtro al cambiar
-                    cargarDatos(); // Recargar datos
+                    filtro.value = '';
+                    pagina.value = 1;
+                    datos.value = [];
+                    cargarDatos();
                 };
 
-                // Filtro dinámico
-                const filtrados = computed(() => {
-                    const lista = tabActual.value === 'ventas' ? listaVentas.value : listaCompras.value;
-                    if (!filtro.value) return lista;
-                    const f = filtro.value.toLowerCase();
-                    return lista.filter(item => 
-                        (item.NOMBRECLIENTE || '').toLowerCase().includes(f) || 
-                        (item.RIF || '').toLowerCase().includes(f) ||
-                        (item.NUMFACTURA || '').toString().includes(f)
-                    );
-                });
+                const cambiarPagina = (delta) => {
+                    const nueva = pagina.value + delta;
+                    if (nueva >= 1 && nueva <= totalPaginas.value) {
+                        pagina.value = nueva;
+                        cargarDatos();
+                    }
+                };
 
-                // Funciones Auxiliares
+                const onSearchInput = () => {
+                    if (tabActual.value === 'articulos') {
+                        clearTimeout(debounceTimer);
+                        debounceTimer = setTimeout(() => { pagina.value = 1; cargarDatos(); }, 500);
+                    }
+                };
+
+                const getKey = (item) => {
+                    if (item.numSerie) return `${item.numSerie}-${item.numFactura}`;
+                    if (item.NUMSERIE) return `${item.NUMSERIE}-${item.NUMFACTURA}`;
+                    return Math.random();
+                };
+
+                const toggleDetalle = async (item) => {
+                    if (!['ventas', 'compras'].includes(tabActual.value)) return;
+
+                    const uid = getKey(item);
+                    if (expandedId.value === uid) { expandedId.value = null; return; }
+
+                    expandedId.value = uid;
+                    itemsDetalle.value = [];
+                    cargandoDetalle.value = true;
+
+                    try {
+                        const endpoint = tabActual.value === 'ventas' 
+                            ? '/api/facturas/buscarFacturaVenta' 
+                            : '/api/facturas/buscarFacturaCompra';
+                        
+                        const serie = item.numSerie || item.NUMSERIE;
+                        const numero = item.numFactura || item.NUMFACTURA;
+                        
+                        const res = await fetch(`${endpoint}?serie=${encodeURIComponent(serie)}&numero=${encodeURIComponent(numero)}`);
+                        const data = await res.json();
+                        
+                        let list = [];
+                        if(data.factura && data.factura.items) list = data.factura.items;
+                        else if(data.items) list = data.items;
+                        else if(Array.isArray(data.factura)) list = data.factura;
+                        else if(Array.isArray(data)) list = data;
+
+                        itemsDetalle.value = list;
+
+                    } catch (e) {
+                        console.error(e);
+                    } finally {
+                        cargandoDetalle.value = false;
+                    }
+                };
+
+                const getEntidad = (item) => {
+                    if (item.cliente) return { nombre: item.cliente.razonSocial, rif: item.cliente.rifCliente };
+                    if (item.proveedor) return { nombre: item.proveedor.razonSocial || item.proveedor.nombre, rif: item.proveedor.rif };
+                    return { nombre: item.NOMBRECLIENTE || item.NOMPROVEEDOR || '---', rif: item.NIF20 || '' };
+                };
+
                 const formatearFecha = (f) => f ? new Date(f).toLocaleDateString('es-VE') : '-';
                 const formatearMoneda = (v) => Number(v).toLocaleString('es-VE', { minimumFractionDigits: 2 });
                 
-                // Acción Generar Guía
+                const getBorderColor = () => {
+                    if(tabActual.value === 'ventas') return 'focus:ring-blue-500 focus:border-blue-500';
+                    if(tabActual.value === 'compras') return 'focus:ring-purple-500 focus:border-purple-500';
+                    if(tabActual.value === 'clientes') return 'focus:ring-green-500 focus:border-green-500';
+                    if(tabActual.value === 'proveedores') return 'focus:ring-orange-500 focus:border-orange-500';
+                    return 'focus:ring-teal-500 focus:border-teal-500';
+                };
+
+                const listaFiltrada = computed(() => {
+                    if (!filtro.value || tabActual.value === 'articulos') return datos.value;
+                    const f = filtro.value.toLowerCase();
+                    return datos.value.filter(item => {
+                        const valores = [
+                            item.NOMBRECLIENTE, item.NOMPROVEEDOR, item.NIF20, 
+                            item.NUMFACTURA, item.CODCLIENTE, item.CODPROVEEDOR
+                        ].map(v => (v || '').toString().toLowerCase());
+                        if(item.cliente) valores.push(item.cliente.razonSocial.toLowerCase(), item.cliente.rifCliente.toLowerCase());
+                        return valores.some(val => val.includes(f));
+                    });
+                });
+
+                // Función Reutilizable
                 const prepararGuia = async (factura) => {
-                    if(!confirm("¿Generar guía para esta factura?")) return;
+                    // Normalizamos los datos (soporta tanto objeto de tabla como manual)
+                    const serie = factura.numSerie || factura.NUMSERIE || factura.serie; 
+                    const numero = factura.numFactura || factura.NUMFACTURA || factura.numero;
+
+                    if(!confirm(`¿Generar guía para factura ${serie}-${numero}?`)) return;
+                    
                     procesando.value = true;
+                    mostrarModalManual.value = false;
+
                     try {
-                        const res = await fetch('/api/guias/generar', {
-                            method: 'POST',
-                            headers: {'Content-Type': 'application/json'},
-                            body: JSON.stringify({ serie: factura.NUMSERIE, numero: factura.NUMFACTURA })
+                        // CAMBIO CLAVE: Construimos la URL con los parámetros ?serie=X&numero=Y
+                        const url = `/api/guia/generar?serie=${encodeURIComponent(serie)}&numero=${encodeURIComponent(numero)}`;
+
+                        // Enviamos la petición POST sin body
+                        const res = await fetch(url, {
+                            method: 'POST', 
+                            headers: {'Content-Type': 'application/json'}
                         });
-                        resultado.value = await res.json();
+
+                        const data = await res.json();
+                        
+                        // Validamos respuesta
+                        if(!res.ok) throw new Error(data.msg || data.error || "Error en el servidor");
+
+                        resultado.value = data; // Mostramos el modal de éxito
+
                     } catch(e) {
+                        console.error(e);
                         resultado.value = { ok: false, msg: e.message };
                     } finally {
                         procesando.value = false;
                     }
                 };
 
+                // Envío desde el Modal
+                const enviarManual = () => {
+                    prepararGuia({ serie: formManual.serie, numero: formManual.numero });
+                };
+
                 onMounted(() => {
-                    cargarDatos(); // Carga inicial
+                    cargarDatos();
                 });
 
                 return {
-                    tabActual, cambiarTab, cargarDatos, 
-                    filtrados, filtro, loading, procesando, resultado,
-                    formatearFecha, formatearMoneda, prepararGuia
+                    tabActual, cambiarTab, cargarDatos, listaFiltrada, filtro, loading, procesando, resultado,
+                    pagina, totalPaginas, cambiarPagina, onSearchInput,
+                    toggleDetalle, expandedId, itemsDetalle, cargandoDetalle, getKey,
+                    getEntidad, formatearFecha, formatearMoneda, getBorderColor, prepararGuia,
+                    mostrarModalManual, formManual, enviarManual
                 };
             }
         }).mount('#app');
     </script>
-    <style>
-        .animate-fade-in { animation: fadeIn 0.3s ease-in-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-    </style>
 </body>
 </html>

@@ -26,13 +26,20 @@ export class cGuiaController {
   static generarGuia = async (req, res) => {
     let idGuia = null;
     try {
-      const { serie, numero } = req.body;
+      const { serie, numero } = req.query;
+
+      console.log("Parametros recibidos: ", req.query);
+
       if (!serie || !numero)
         return res
           .status(400)
           .json({ ok: false, msg: "Faltan datos de la factura" });
 
-      console.log("Iniciando genereación de guia");
+      console.log(
+        "Iniciando genereación de guia para la factura ",
+        serie,
+        numero
+      );
 
       const factura = await getFacturaVenta(serie, numero);
 
@@ -92,7 +99,7 @@ export class cGuiaController {
         );
       }
 
-      await aprobarGuia(idGuia);
+      //await aprobarGuia(idGuia);
 
       await registrarGuia(
         idGuia,
