@@ -7,6 +7,49 @@ import { cQuerysSQL } from "../querys/querysSQL.js";
  * @param {number} numero
  * @returns {Promise<cFacturaVenta|null>}
  */
+export const getFacturasVentas = async (page, limit) => {
+  try {
+    const pool = await getConnection();
+    const offset = (page - 1) * limit;
+
+    const cabeceraFactura = await pool
+      .request()
+      .input("OFFSET", sql.Int, offset)
+      .input("LIMIT", sql.Int, limit)
+      .query(cQuerysSQL.getFacturasVentas);
+
+    const total = await pool.query(cQuerysSQL.getCountFacturasVentas);
+
+    const totalFacturas = total.recordset[0].total;
+    return { facturas: cabeceraFactura.recordset, total: totalFacturas };
+  } catch (error) {
+    console.error("Error en getFacturasVentas:", error.message);
+    throw error;
+  }
+};
+
+export const getFacturasCompras = async (page, limit) => {
+  try {
+    const pool = await getConnection();
+    const offset = (page - 1) * limit;
+
+    const cabeceraFactura = await pool
+      .request()
+      .input("OFFSET", sql.Int, offset)
+      .input("LIMIT", sql.Int, limit)
+      .query(cQuerysSQL.getFacturasCompras);
+
+    const totalFacturas = await pool
+      .request()
+      .query(cQuerysSQL.getCountFacturasCompras);
+
+    const totalRecords = totalFacturas.recordset[0].total;
+    return { facturas: cabeceraFactura.recordset, total: totalRecords };
+  } catch (error) {
+    console.error("Error en getFacturasCompras:", error.message);
+    throw error;
+  }
+};
 
 export const getFacturaVenta = async (serie, numero) => {
   const serieFormateada = serie.trim();

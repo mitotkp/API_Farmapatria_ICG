@@ -38,7 +38,16 @@ export class cQuerysSQL {
 			LEFT JOIN ALBVENTACAB AVC ON FV.NUMSERIE = AVC.NUMSERIEFAC AND FV.NUMFACTURA = AVC.NUMFAC AND FV.N = AVC.NFAC
             LEFT JOIN CLIENTES C ON FV.CODCLIENTE = C.CODCLIENTE
         WHERE
-            FV.N = 'B' 
+            FV.N = 'B'
+        ORDER BY 
+            FV.NUMSERIE DESC,
+            FV.NUMFACTURA DESC
+        OFFSET @OFFSET ROWS 
+        FETCH NEXT @LIMIT ROWS ONLY
+    `;
+
+  static getCountFacturasVentas = `
+        SELECT COUNT(*) as total FROM FACTURASVENTA WHERE N = 'B'
     `;
 
   static getDetalleFacturaVenta = `
@@ -105,6 +114,15 @@ export class cQuerysSQL {
             INNER JOIN ALBCOMPRACAB ACC ON FC.NUMSERIE = ACC.NUMSERIEFAC AND FC.NUMFACTURA = ACC.NUMFAC AND FC.N = ACC.N
         WHERE 
             FC.N = 'B'
+        ORDER BY 
+            FC.NUMSERIE DESC,
+            FC.NUMFACTURA DESC
+        OFFSET @OFFSET ROWS 
+        FETCH NEXT @LIMIT ROWS ONLY
+    `;
+
+  static getCountFacturasCompras = `
+        SELECT COUNT(*) as total FROM FACTURASCOMPRA WHERE N = 'B'
     `;
   static getDetalleFacturaCompra = `
         SELECT 

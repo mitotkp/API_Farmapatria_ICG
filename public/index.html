@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Farmapatria ICG</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans">
+
+    <div id="app" class="min-h-screen flex flex-col">
+        
+        <nav class="bg-white shadow-sm border-b border-gray-200 px-6 py-3 flex justify-between items-center z-10">
+            <div class="flex items-center gap-3">
+                <div class="bg-blue-700 text-white w-10 h-10 rounded-lg flex items-center justify-center shadow-md">
+                    <i class="fas fa-network-wired"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold text-gray-800 leading-tight">Farmapatria ICG</h1>
+                    <p class="text-xs text-gray-500">Gestión de Guías SICM</p>
+                </div>
+            </div>
+            <button @click="cargarDatos" class="text-gray-500 hover:text-blue-600 transition p-2 rounded-full hover:bg-gray-100">
+                <i class="fas fa-sync-alt" :class="{'fa-spin': loading}"></i>
+            </button>
+        </nav>
+
+        <main class="flex-1 p-6 max-w-7xl mx-auto w-full">
+            
+            <div class="flex flex-col md:flex-row justify-between items-end mb-6 gap-4 border-b border-gray-200 pb-1">
+                
+                <div class="flex space-x-6">
+                    <button 
+                        @click="cambiarTab('ventas')"
+                        class="pb-3 text-sm font-bold border-b-2 transition-colors flex items-center gap-2"
+                        :class="tabActual === 'ventas' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-400 hover:text-gray-600'">
+                        <i class="fas fa-shopping-cart"></i> Facturas de Venta
+                    </button>
+                    <button 
+                        @click="cambiarTab('compras')"
+                        class="pb-3 text-sm font-bold border-b-2 transition-colors flex items-center gap-2"
+                        :class="tabActual === 'compras' ? 'border-purple-600 text-purple-600' : 'border-transparent text-gray-400 hover:text-gray-600'">
+                        <i class="fas fa-truck-loading"></i> Facturas de Compra
+                    </button>
+                </div>
+
+                <div class="relative w-full md:w-72 mb-2">
+                    <i class="fas fa-search absolute left-3 top-3 text-gray-400 text-xs"></i>
+                    <input v-model="filtro" type="text" placeholder="Buscar..." 
+                        class="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:outline-none transition shadow-sm"
+                        :class="tabActual === 'ventas' ? 'focus:ring-blue-500 focus:border-blue-500' : 'focus:ring-purple-500 focus:border-purple-500'">
+                </div>
+            </div>
+
+            <div v-if="tabActual === 'ventas'" class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden animate-fade-in">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-blue-50 text-blue-800 uppercase text-xs font-bold tracking-wider">
+                        <tr>
+                            <th class="px-6 py-3">Emisión</th>
+                            <th class="px-6 py-3">Factura</th>
+                            <th class="px-6 py-3">Cliente</th>
+                            <th class="px-6 py-3 text-right">Total</th>
+                            <th class="px-6 py-3 text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        <tr v-for="factura in filtrados" :key="factura.identificador" class="hover:bg-gray-50 transition cursor-pointer" @click="toggleDetalle(factura)">
+                            <td class="px-6 py-3 text-gray-500">{{ formatearFecha(factura.FECHA) }}</td>
+                            <td class="px-6 py-3 font-medium">{{ factura.NUMSERIE }}-{{ factura.NUMFACTURA }}</td>
+                            <td class="px-6 py-3">
+                                <div class="font-bold text-gray-800">{{ factura.RAZONSOCIAL }}</div>
+                                <div class="text-xs text-gray-400">{{ factura.RIF }}</div>
+                            </td>
+                            <td class="px-6 py-3 text-right font-mono text-gray-600">{{ formatearMoneda(factura.TOTALNETO_BS) }}</td>
+                            <td class="px-6 py-3 text-center">
+                                <button @click.stop="prepararGuia(factura)" class="bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1 rounded-md text-xs font-semibold transition">
+                                    Generar Guía
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div v-if="filtrados.length === 0" class="p-8 text-center text-gray-400 text-sm">No hay ventas recientes.</div>
+            </div>
+
+            <div v-if="tabActual === 'compras'" class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden animate-fade-in">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-purple-50 text-purple-800 uppercase text-xs font-bold tracking-wider">
+                        <tr>
+                            <th class="px-6 py-3">Recepción</th>
+                            <th class="px-6 py-3">Documento</th>
+                            <th class="px-6 py-3">Proveedor</th>
+                            <th class="px-6 py-3 text-right">Total</th>
+                            <th class="px-6 py-3 text-center">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        <tr v-for="compra in filtrados" :key="compra.identificador" class="hover:bg-gray-50 transition">
+                            <td class="px-6 py-3 text-gray-500">{{ formatearFecha(compra.FECHA) }}</td>
+                            <td class="px-6 py-3 font-medium">{{ compra.NUMSERIE }}-{{ compra.NUMFACTURA }}</td>
+                            <td class="px-6 py-3">
+                                <div class="font-bold text-gray-800">{{ compra.NOMBRECLIENTE }}</div> <div class="text-xs text-gray-400">{{ compra.RIF }}</div>
+                            </td>
+                            <td class="px-6 py-3 text-right font-mono text-gray-600">{{ formatearMoneda(compra.TOTALNETO_BS) }}</td>
+                            <td class="px-6 py-3 text-center">
+                                <span class="bg-gray-100 text-gray-500 px-2 py-1 rounded text-xs">Solo Visualizar</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div v-if="filtrados.length === 0" class="p-8 text-center text-gray-400 text-sm">No hay compras recientes.</div>
+            </div>
+
+        </main>
+
+        <div v-if="procesando" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+            <div class="bg-white rounded-xl p-6 shadow-xl text-center">
+                <i class="fas fa-circle-notch fa-spin text-3xl text-blue-600 mb-3"></i>
+                <p class="font-medium text-gray-700">Conectando con Farmapatria...</p>
+            </div>
+        </div>
+        
+        <div v-if="resultado" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+            <div class="bg-white rounded-xl shadow-2xl max-w-sm w-full overflow-hidden">
+                <div :class="`p-4 text-center ${resultado.ok ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`">
+                    <h3 class="font-bold text-lg">{{ resultado.ok ? '¡Éxito!' : 'Error' }}</h3>
+                </div>
+                <div class="p-6 text-center">
+                    <p class="text-gray-600 text-sm mb-4">{{ resultado.msg }}</p>
+                    <div v-if="resultado.ok && resultado.linkPDF">
+                         <a :href="resultado.linkPDF" target="_blank" class="block w-full bg-blue-600 text-white py-2 rounded-lg font-bold hover:bg-blue-700 transition">Ver PDF</a>
+                    </div>
+                    <button @click="resultado = null" class="mt-3 text-gray-500 hover:text-gray-700 text-sm underline">Cerrar</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const { createApp, ref, computed, onMounted, watch } = Vue;
+
+        createApp({
+            setup() {
+                const tabActual = ref('ventas'); // 'ventas' o 'compras'
+                const listaVentas = ref([]);
+                const listaCompras = ref([]);
+                const loading = ref(false);
+                const filtro = ref('');
+                const procesando = ref(false);
+                const resultado = ref(null);
+
+                // Cargar datos según el tab activo
+                const cargarDatos = async () => {
+                    loading.value = true;
+                    try {
+                        // Decidimos qué endpoint llamar
+                        const endpoint = tabActual.value === 'ventas' 
+                            ? '/api/facturas/obtenerFacturasVentas' 
+                            : '/api/facturas/obtenerFacturasCompras';
+                        
+                        const res = await fetch(endpoint);
+                        const data = await res.json();
+
+                        console.log(data);
+
+                        if (tabActual.value === 'ventas') listaVentas.value = data;
+                        else listaCompras.value = data;
+
+                    } catch (e) {
+                        console.error("Error cargando datos:", e);
+                    } finally {
+                        loading.value = false;
+                    }
+                };
+
+                const cambiarTab = (nuevoTab) => {
+                    tabActual.value = nuevoTab;
+                    filtro.value = ''; // Limpiar filtro al cambiar
+                    cargarDatos(); // Recargar datos
+                };
+
+                // Filtro dinámico
+                const filtrados = computed(() => {
+                    const lista = tabActual.value === 'ventas' ? listaVentas.value : listaCompras.value;
+                    if (!filtro.value) return lista;
+                    const f = filtro.value.toLowerCase();
+                    return lista.filter(item => 
+                        (item.NOMBRECLIENTE || '').toLowerCase().includes(f) || 
+                        (item.RIF || '').toLowerCase().includes(f) ||
+                        (item.NUMFACTURA || '').toString().includes(f)
+                    );
+                });
+
+                // Funciones Auxiliares
+                const formatearFecha = (f) => f ? new Date(f).toLocaleDateString('es-VE') : '-';
+                const formatearMoneda = (v) => Number(v).toLocaleString('es-VE', { minimumFractionDigits: 2 });
+                
+                // Acción Generar Guía
+                const prepararGuia = async (factura) => {
+                    if(!confirm("¿Generar guía para esta factura?")) return;
+                    procesando.value = true;
+                    try {
+                        const res = await fetch('/api/guias/generar', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({ serie: factura.NUMSERIE, numero: factura.NUMFACTURA })
+                        });
+                        resultado.value = await res.json();
+                    } catch(e) {
+                        resultado.value = { ok: false, msg: e.message };
+                    } finally {
+                        procesando.value = false;
+                    }
+                };
+
+                onMounted(() => {
+                    cargarDatos(); // Carga inicial
+                });
+
+                return {
+                    tabActual, cambiarTab, cargarDatos, 
+                    filtrados, filtro, loading, procesando, resultado,
+                    formatearFecha, formatearMoneda, prepararGuia
+                };
+            }
+        }).mount('#app');
+    </script>
+    <style>
+        .animate-fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</body>
+</html>

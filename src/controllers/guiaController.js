@@ -26,7 +26,7 @@ export class cGuiaController {
   static generarGuia = async (req, res) => {
     let idGuia = null;
     try {
-      const { serie, numero } = req.query;
+      const { serie, numero } = req.body;
       if (!serie || !numero)
         return res
           .status(400)
