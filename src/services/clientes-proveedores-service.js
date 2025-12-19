@@ -358,7 +358,7 @@ export const obtenerClienteFP = async (rif) => {
       .request()
       .input("RIF", sql.VarChar, rif)
       .query(cQuerysSQL.obtenerClienteFP);
-    return (codSicmProd = cliente.recordset[0]?.CODSICM);
+    return cliente.recordset[0]?.CODSICM;
   } catch (error) {
     console.error("Error en obtenerClienteFP:", error.message);
     throw error;

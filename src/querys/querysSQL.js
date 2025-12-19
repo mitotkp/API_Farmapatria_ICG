@@ -1,6 +1,6 @@
 export class cQuerysSQL {
   static getFacturaVenta = `
-         SELECT 
+        SELECT 
             FV.NUMSERIE,
             FV.NUMFACTURA,
             FV.FECHA,
@@ -19,6 +19,26 @@ export class cQuerysSQL {
             FV.NUMSERIE LIKE @SERIE + '%'
             AND FV.NUMFACTURA = @NUMERO
 			AND FV.N = 'B' 
+    `;
+
+  static getFacturasVentas = `
+        SELECT 
+            FV.NUMSERIE,
+            FV.NUMFACTURA,
+            FV.FECHA,
+            FV.CODCLIENTE,
+			ROUND(rip.F_GET_COTIZACION_RIP(FV.TOTALNETO, FV.FECHA, FV.FACTORMONEDA, FV.CODMONEDA, 1), 2) TOTALNETO_BS, 
+			ROUND(rip.F_GET_COTIZACION_RIP(FV.TOTALNETO, FV.FECHA, FV.FACTORMONEDA, FV.CODMONEDA, 2), 2) TOTALNETO_USD, 
+            C.NOMBRECLIENTE AS RAZONSOCIAL,
+            C.NIF20,
+            C.DIRECCION1,
+            NULL AS CODIGO_SICM
+        FROM 
+            FACTURASVENTA FV 
+			LEFT JOIN ALBVENTACAB AVC ON FV.NUMSERIE = AVC.NUMSERIEFAC AND FV.NUMFACTURA = AVC.NUMFAC AND FV.N = AVC.NFAC
+            LEFT JOIN CLIENTES C ON FV.CODCLIENTE = C.CODCLIENTE
+        WHERE
+            FV.N = 'B' 
     `;
 
   static getDetalleFacturaVenta = `
@@ -63,11 +83,29 @@ export class cQuerysSQL {
             LEFT JOIN PROVEEDORES P ON FC.CODPROVEEDOR = P.CODPROVEEDOR
             INNER JOIN ALBCOMPRACAB ACC ON FC.NUMSERIE = ACC.NUMSERIEFAC AND FC.NUMFACTURA = ACC.NUMFAC AND FC.N = ACC.N
         WHERE 
-            FC.NUMSERIE LIKE @SERIE + '%' 
-            AND FC.NUMFACTURA = @NUMERO 
-            AND FC.N = 'B'
+            FC.N = 'B'
     `;
 
+  static getFacturasCompras = `
+        SELECT 
+            FC.NUMSERIE, 
+            FC.NUMFACTURA, 
+            ACC.NUMALBARAN,
+            ACC.FECHAALBARAN,
+            FC.CODPROVEEDOR,
+            ROUND(rip.F_GET_COTIZACION_RIP(FC.TOTALNETO, FC.FECHA, FC.FACTORMONEDA, FC.CODMONEDA, 1), 2) TOTALNETO_BS, 
+			ROUND(rip.F_GET_COTIZACION_RIP(FC.TOTALNETO, FC.FECHA, FC.FACTORMONEDA, FC.CODMONEDA, 2), 2) TOTALNETO_USD, 
+            P.NOMPROVEEDOR, 
+            P.NIF20, 
+            P.DIRECCION1,
+            NULL AS CODIGO_SICM
+        FROM 
+            FACTURASCOMPRA FC
+            LEFT JOIN PROVEEDORES P ON FC.CODPROVEEDOR = P.CODPROVEEDOR
+            INNER JOIN ALBCOMPRACAB ACC ON FC.NUMSERIE = ACC.NUMSERIEFAC AND FC.NUMFACTURA = ACC.NUMFAC AND FC.N = ACC.N
+        WHERE 
+            FC.N = 'B'
+    `;
   static getDetalleFacturaCompra = `
         SELECT 
             ACL.CODARTICULO, 
@@ -265,6 +303,6 @@ export class cQuerysSQL {
   `;
 
   static validarArticuloFP = `
-    SELECT CODSICM FROM ARTICULOSFARMAPATRIA WHERE CODARTICULO = @CODARTIICULO 
+    SELECT CODSICM FROM ARTICULOSFARMAPATRIA WHERE CODARTICULO = @CODARTICULO 
   `;
 }

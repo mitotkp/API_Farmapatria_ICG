@@ -1,8 +1,5 @@
-import { getConnection } from "../config/db.js";
-import {
-  getFacturaVenta,
-  getDetalleFacturaVenta,
-} from "../services/factura-service.js";
+import { getConnection, sql } from "../config/db.js";
+import { getFacturaVenta } from "../services/factura-service.js";
 import {
   inicializarGuia,
   agregarDetalleGuia,
@@ -10,6 +7,7 @@ import {
   anularGuia,
 } from "../services/scim-service.js";
 import { obtenerClienteFP } from "../services/clientes-proveedores-service.js";
+import { validarArticuloFp } from "../services/catalogo-service.js";
 import { cQuerysSQL } from "../querys/querysSQL.js";
 
 const registrarGuia = async (numGuia, serie, numFactura, cliente, estatus) => {
@@ -28,7 +26,7 @@ export class cGuiaController {
   static generarGuia = async (req, res) => {
     let idGuia = null;
     try {
-      const { serie, numero } = req.body;
+      const { serie, numero } = req.query;
       if (!serie || !numero)
         return res
           .status(400)
@@ -38,25 +36,36 @@ export class cGuiaController {
 
       const factura = await getFacturaVenta(serie, numero);
 
-      if (!factura || factura.length === 0)
+      if (!factura)
         return res
           .status(400)
           .json({ ok: false, msg: "Factura no encontrada en ICG" });
 
-      const cabecera = factura[0];
-      const productos = await getDetalleFacturaVenta(serie, numero);
-
-      const clienteFP = await obtenerClienteFP(cabecera.NIF20);
-
-      if (!clienteFP || clienteFP.length === 0)
+      if (factura.items.length === 0)
         return res
           .status(400)
-          .json({ ok: false, msg: "Cliente no encontrado en ICG" });
+          .json({ ok: false, msg: "Factura no tiene productos" });
+
+      const rifCliente = factura.cliente.rifCliente;
+      const codClienteICG = factura.cliente.codCliente;
+
+      console.log(rifCliente);
+      console.log(codClienteICG);
+
+      const clienteFP = (await obtenerClienteFP(rifCliente)) || "16360";
+
+      console.log(clienteFP);
+
+      if (!clienteFP) {
+        return res
+          .status(400)
+          .json({ ok: false, msg: "SICM del cliente no encontrado" });
+      }
 
       const productosValidados = [];
 
-      for (const producto of productos) {
-        const codSicm = await validarArticuloFp(producto.CODARTICULO);
+      for (const producto of factura.items) {
+        const codSicm = await validarArticuloFp(producto.codArticulo);
 
         if (codSicm) {
           productosValidados.push({
@@ -78,14 +87,21 @@ export class cGuiaController {
           idGuia,
           item.sicm,
           null,
-          item.PRECIO,
-          item.CANTIDAD
+          item.precioBs,
+          item.cantidad
         );
       }
 
       await aprobarGuia(idGuia);
 
-      await registrarGuia(idGuia, serie, numero, clienteFP, "Aprobada");
+      await registrarGuia(
+        idGuia,
+        serie,
+        numero,
+        codClienteICG,
+        "Aprobada",
+        `http://sicm.gob.ve/g_4cguia.php?id_guia=${idGuia}`
+      );
 
       res.json({
         ok: true,
