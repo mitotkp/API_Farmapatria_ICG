@@ -10,7 +10,14 @@ import { obtenerClienteFP } from "../services/clientes-proveedores-service.js";
 import { validarArticuloFp } from "../services/catalogo-service.js";
 import { cQuerysSQL } from "../querys/querysSQL.js";
 
-const registrarGuia = async (numGuia, serie, numFactura, cliente, estatus) => {
+const registrarGuia = async (
+  numGuia,
+  serie,
+  numFactura,
+  cliente,
+  estatus,
+  link
+) => {
   const pool = await getConnection();
   await pool
     .request()
@@ -19,9 +26,18 @@ const registrarGuia = async (numGuia, serie, numFactura, cliente, estatus) => {
     .input("NUMERO", sql.VarChar, numFactura)
     .input("CLIENTE", sql.Int, cliente)
     .input("ESTATUS", sql.VarChar, estatus)
+    .input("LINK", sql.VarChar, link)
     .query(cQuerysSQL.insertarGuia);
 };
 
+const actualizarEstatusGuia = async (numGuia, estatus) => {
+  const pool = await getConnection();
+  await pool
+    .request()
+    .input("GUIA", sql.Int, numGuia)
+    .input("ESTATUS", sql.VarChar, estatus)
+    .query(cQuerysSQL.actualizarEstatusGuia);
+};
 export class cGuiaController {
   static generarGuia = async (req, res) => {
     let idGuia = null;
@@ -35,13 +51,15 @@ export class cGuiaController {
           .status(400)
           .json({ ok: false, msg: "Faltan datos de la factura" });
 
+      const serieM = serie.toUpperCase();
+
       console.log(
         "Iniciando genereación de guia para la factura ",
-        serie,
+        serieM,
         numero
       );
 
-      const factura = await getFacturaVenta(serie, numero);
+      const factura = await getFacturaVenta(serieM, numero);
 
       if (!factura)
         return res
@@ -106,7 +124,7 @@ export class cGuiaController {
         serie,
         numero,
         codClienteICG,
-        "Aprobada",
+        "Generada",
         `http://sicm.gob.ve/g_4cguia.php?id_guia=${idGuia}`
       );
 
@@ -123,6 +141,7 @@ export class cGuiaController {
         try {
           console.log(`Intentando anular guía incompleta ${idGuia}...`);
           await anularGuia(idGuia);
+          await actualizarEstatusGuia(idGuia, "Anulada");
         } catch (e) {
           console.error("Error anulando guía:", e.message);
         }
@@ -133,6 +152,31 @@ export class cGuiaController {
         msg: "Error generando guía",
         error: error.message,
       });
+    }
+  };
+
+  static anularGuiaManual = async (req, res) => {
+    try {
+      const { idGuia } = req.query;
+
+      if (!idGuia) {
+        return res
+          .status(400)
+          .json({ ok: false, msg: "Debe indicar el numero de guia" });
+      }
+
+      console.log("Anulando guia: ", idGuia);
+
+      const resultado = await anularGuia(idGuia);
+
+      await actualizarEstatusGuia(idGuia, "Anulada");
+
+      res.json({ ok: true, msg: "Guia anulada exitosamente", resultado });
+    } catch (error) {
+      console.error("Error anulando guia:", error);
+      res
+        .status(500)
+        .json({ ok: false, msg: "Error anulando guia", error: error.message });
     }
   };
 }
