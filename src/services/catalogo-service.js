@@ -170,7 +170,7 @@ export const sincronizarArticulos = async (cantidad) => {
           await mapearArticulo(
             CODARTICULO,
             resultadoSoap.respuesta.CODIGO_SICM,
-            descGobiernoSafe
+            descGobiernoSafe,
           );
           reporte.exitosos++;
         } else if (resultadoSoap.error) {
@@ -179,7 +179,7 @@ export const sincronizarArticulos = async (cantidad) => {
           await mapearArticulo(
             CODARTICULO,
             null,
-            "NO ENCONTRADO EN FARMAPATRIA"
+            "NO ENCONTRADO EN FARMAPATRIA",
           );
           reporte.fallidos++;
         }

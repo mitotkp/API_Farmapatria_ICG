@@ -99,3 +99,57 @@ export class cItemFacturaCompra {
     this.codigoScimOficial = null;
   }
 }
+
+export class cAlbaranVenta {
+  constructor(dbHeader, dbItems = []) {
+    this.numSerie = dbHeader.NUMSERIE;
+    this.numAlbaran = dbHeader.NUMALBARAN;
+    this.identificadorCompleto = `${dbHeader.NUMSERIE}-${dbHeader.NUMALBARAN}`;
+    this.fecha = new Date(dbHeader.FECHA);
+
+    this.codAlmacen = dbHeader.CODALMACEN;
+
+    this.cliente = {
+      codCliente: dbHeader.CODCLIENTE,
+      razonSocial: dbHeader.RAZONSOCIAL || dbHeader.NOMBRECLIENTE,
+      rifCliente: dbHeader.NIF20,
+      direccion: dbHeader.DIRECCION1,
+      codigoScim: dbHeader.CODSICM || "",
+    };
+
+    this.totalNetoBs = Number(dbHeader.TOTALNETO_BS) || 0;
+    this.totalNetoUsd = Number(dbHeader.TOTALNETO_USD) || 0;
+
+    this.items = dbItems.map((item) => new cItemAlbaranVenta(item));
+  }
+
+  get totalUnidades() {
+    return this.items.reduce((total, item) => total + item.cantidad, 0);
+  }
+}
+
+export class cItemAlbaranVenta {
+  constructor(dbItem) {
+    this.codArticulo = dbItem.CODARTICULO;
+    this.refProveedor = dbItem.REFERENCIA || "SIN REFERENCIA";
+    this.descripcion = dbItem.DESCRIPCION;
+    this.cantidad = Number(dbItem.CANTIDAD) || 0;
+    this.precioBs = Number(dbItem.PRECIOBS) || 0;
+    this.precioUsd = Number(dbItem.PRECIOUSD) || 0;
+
+    this.codBarras = dbItem.CODBARRAS || "SIN CODBARRAS";
+
+    this.talla = dbItem.TALLA ? dbItem.TALLA.trim() : ".";
+    this.color = dbItem.COLOR ? dbItem.COLOR.trim() : ".";
+
+    this.vencimiento = dbItem.VENCIMIENTO
+      ? new Date(dbItem.VENCIMIENTO)
+      : new Date("2030-12-31");
+
+    if (isNaN(this.vencimiento.getTime())) {
+      this.vencimiento = new Date("2030-12-31");
+    }
+
+    this.codigoScimOficial = null;
+  }
+}
