@@ -275,6 +275,7 @@ export const comprobarSiExisteAlbaran = async (serie, numero) => {
     */
 
     const albaranDatos = albaran.recordset[0];
+    console.log("Albaran Datos: ", albaranDatos);
 
     const serieAlbaran = albaranDatos.NUMSERIE;
     const numeroAlbaran = albaranDatos.NUMALBARAN;
@@ -283,6 +284,8 @@ export const comprobarSiExisteAlbaran = async (serie, numero) => {
     de la consulta anterior. Tomando en cuenta de que debe de
     ser un albaran lo que estoy buscando
     */
+    console.log("Serie Albaran: ", serieAlbaran);
+    console.log("Numero Albaran: ", numeroAlbaran);
     const obtenerGuia = await pool
       .request()
       .input("SERIE", sql.VarChar, serieAlbaran.toString())
@@ -293,6 +296,7 @@ export const comprobarSiExisteAlbaran = async (serie, numero) => {
     ya que entonces me permitiria que la factura cree su 
     propia guia 
     */
+    console.log("Guia encontrada: ", obtenerGuia.recordset);
 
     if (obtenerGuia.recordset.length === 0) {
       console.log("No se encontro una guia para el albaran");

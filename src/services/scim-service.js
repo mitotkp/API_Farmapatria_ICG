@@ -89,7 +89,7 @@ export const inicializarGuia = async (
   codSicmDestino,
   bultos,
   numFactura,
-  codAlmacen
+  codAlmacen,
 ) => {
   try {
     const client = await soap.createClientAsync(SICM_WSDL);
@@ -137,7 +137,7 @@ export const agregarDetalleGuia = async (
   codSicmProducto,
   lote,
   precio,
-  cantidad
+  cantidad,
 ) => {
   try {
     const client = await soap.createClientAsync(SICM_WSDL);

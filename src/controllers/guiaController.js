@@ -1,6 +1,7 @@
 import { getConnection, sql } from "../config/db.js";
 import {
   getFacturaVenta,
+  getAlbaranVenta,
   comprobarSiExisteAlbaran,
 } from "../services/factura-service.js";
 import {
@@ -64,7 +65,9 @@ export class cGuiaController {
       if (tipoDoc === "F") {
         const albaran = await comprobarSiExisteAlbaran(serieM, numero);
 
-        if (albaran) {
+        console.log("Albaran", albaran);
+
+        if (albaran.exists === true) {
           return res.status(400).json({
             ok: false,
             msg: "No se puede generar una guia para la factura porque el albaran ya tiene una guia creada",
@@ -123,7 +126,7 @@ export class cGuiaController {
             await agregarDetalleGuia(
               idGuia,
               item.sicm,
-              null,
+              item.codBarras,
               item.precioBs,
               item.cantidad,
             );
@@ -149,7 +152,7 @@ export class cGuiaController {
           });
         }
       } else {
-        const albaran = await getAlbaran(serieM, numero);
+        const albaran = await getAlbaranVenta(serieM, numero);
 
         if (!albaran)
           return res
@@ -191,7 +194,7 @@ export class cGuiaController {
           await agregarDetalleGuia(
             idGuia,
             item.sicm,
-            null,
+            item.codBarras,
             item.precioBs,
             item.cantidad,
           );
