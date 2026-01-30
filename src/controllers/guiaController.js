@@ -9,6 +9,7 @@ import {
   agregarDetalleGuia,
   aprobarGuia,
   anularGuia,
+  comprobarSiExisteGuia,
 } from "../services/scim-service.js";
 import { obtenerClienteFP } from "../services/clientes-proveedores-service.js";
 import { validarArticuloFp } from "../services/catalogo-service.js";
@@ -61,6 +62,16 @@ export class cGuiaController {
       const serieM = serie.toUpperCase();
 
       console.log("Iniciando genereación de guia", serieM, numero, tipoDoc);
+
+      const guia = await comprobarSiExisteGuia(serieM, numero);
+
+      if (guia) {
+        return res.status(400).json({
+          ok: false,
+          msg: "Guia ya existe",
+          guia: guia,
+        });
+      }
 
       if (tipoDoc === "F") {
         const albaran = await comprobarSiExisteAlbaran(serieM, numero);

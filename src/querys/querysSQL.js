@@ -1,5 +1,5 @@
 export class cQuerysSQL {
-  static getFacturaVenta = `
+    static getFacturaVenta = `
         SELECT 
             FV.NUMSERIE,
             FV.NUMFACTURA,
@@ -21,7 +21,7 @@ export class cQuerysSQL {
 			AND FV.N = 'B' 
     `;
 
-  static getFacturasVentas = `
+    static getFacturasVentas = `
         SELECT 
             FV.NUMSERIE,
             FV.NUMFACTURA,
@@ -46,11 +46,11 @@ export class cQuerysSQL {
         FETCH NEXT @LIMIT ROWS ONLY
     `;
 
-  static getCountFacturasVentas = `
+    static getCountFacturasVentas = `
         SELECT COUNT(*) as total FROM FACTURASVENTA WHERE N = 'B'
     `;
 
-  static getDetalleFacturaVenta = `
+    static getDetalleFacturaVenta = `
         SELECT 
             AVL.CODARTICULO,
 			MAX(AVL.DESCRIPCION) AS DESCRIPCION, 
@@ -74,7 +74,7 @@ export class cQuerysSQL {
 			AVL.CODARTICULO
     `;
 
-  static getAlbaranesVentas = `
+    static getAlbaranesVentas = `
         SELECT 
               AVC.NUMSERIE
             , AVC.NUMALBARAN
@@ -101,7 +101,7 @@ export class cQuerysSQL {
         FETCH NEXT @LIMIT ROWS ONLY
     `;
 
-  static getAlbaranVenta = `
+    static getAlbaranVenta = `
         SELECT 
               AVC.NUMSERIE
             , AVC.NUMALBARAN
@@ -125,7 +125,7 @@ export class cQuerysSQL {
             AND AVC.N = 'B'
     `;
 
-  static getDetalleAlbaranVenta = `
+    static getDetalleAlbaranVenta = `
         SELECT 
               AVL.CODARTICULO
             , MAX(AVL.DESCRIPCION) AS DESCRIPCION 
@@ -149,11 +149,11 @@ export class cQuerysSQL {
             AVL.CODARTICULO
     `;
 
-  static getCountAlbaranVenta = `
+    static getCountAlbaranVenta = `
         SELECT COUNT(*) as total FROM ALBVENTACAB WHERE N = 'B'
     `;
 
-  static getFacturaCompra = `
+    static getFacturaCompra = `
         SELECT 
             FC.NUMSERIE, 
             FC.NUMFACTURA, 
@@ -176,7 +176,7 @@ export class cQuerysSQL {
             AND FC.N = 'B'
     `;
 
-  static getFacturasCompras = `
+    static getFacturasCompras = `
         SELECT 
             FC.NUMSERIE, 
             FC.NUMFACTURA, 
@@ -202,10 +202,10 @@ export class cQuerysSQL {
         FETCH NEXT @LIMIT ROWS ONLY
     `;
 
-  static getCountFacturasCompras = `
+    static getCountFacturasCompras = `
         SELECT COUNT(*) as total FROM FACTURASCOMPRA WHERE N = 'B'
     `;
-  static getDetalleFacturaCompra = `
+    static getDetalleFacturaCompra = `
         SELECT 
             ACL.CODARTICULO, 
             MAX(ACL.DESCRIPCION) AS DESCRIPCION, 
@@ -227,7 +227,7 @@ export class cQuerysSQL {
             ACL.CODARTICULO
     `;
 
-  static getClientes = `
+    static getClientes = `
         SELECT 
             C.*,
             FP.CODSICM AS CODSICM
@@ -239,7 +239,7 @@ export class cQuerysSQL {
             OFFSET @OFFSET ROWS FETCH NEXT @LIMIT ROWS ONLY
     `;
 
-  static getCliente = `
+    static getCliente = `
     SELECT 
 	C.*,
 	FP.CODSICM AS CODSICM
@@ -250,9 +250,9 @@ WHERE
 	C.CODCLIENTE = @CODCLIENTE
     `;
 
-  static getCountClientes = `SELECT COUNT(*) as total FROM CLIENTES`;
+    static getCountClientes = `SELECT COUNT(*) as total FROM CLIENTES`;
 
-  static getProveedores = `
+    static getProveedores = `
     SELECT 
         P.*,
         FP.CODSICM AS CODSICM
@@ -264,11 +264,11 @@ WHERE
         OFFSET @OFFSET ROWS FETCH NEXT @LIMIT ROWS ONLY
   `;
 
-  static getCountProveedores = `SELECT COUNT(*) as total FROM PROVEEDORES`;
+    static getCountProveedores = `SELECT COUNT(*) as total FROM PROVEEDORES`;
 
-  static getProveedor = `SELECT * FROM PROVEEDORES WHERE CODPROVEEDOR = @CODPROVEEDOR`;
+    static getProveedor = `SELECT * FROM PROVEEDORES WHERE CODPROVEEDOR = @CODPROVEEDOR`;
 
-  static getArticulos = `
+    static getArticulos = `
     SELECT 
         ART.CODARTICULO,
         AFP.CODSICM, 
@@ -295,7 +295,7 @@ WHERE
     FETCH NEXT @LIMIT ROWS ONLY
   `;
 
-  static getArticulosSinVincular = `
+    static getArticulosSinVincular = `
     SELECT TOP (@LIMIT)
         A.CODARTICULO, 
         A.DESCRIPCION, 
@@ -310,7 +310,7 @@ WHERE
         A.CODARTICULO ASC
   `;
 
-  static getArticuloDetalle = `
+    static getArticuloDetalle = `
     SELECT 
         ART.CODARTICULO,
         AFP.CODSICM, 
@@ -347,7 +347,7 @@ WHERE
         AND ST.CODALMACEN = @ALMACEN
   `;
 
-  static contarArticulos = `
+    static contarArticulos = `
     SELECT COUNT(*) as total
     FROM 
         ARTICULOS ART 
@@ -366,7 +366,7 @@ WHERE
         )
 `;
 
-  static mapearArticulos = `
+    static mapearArticulos = `
     MERGE ARTICULOSFARMAPATRIA AS TARGET
     USING (SELECT @CODARTICULO AS CODARTICULO) AS SOURCE
     ON (TARGET.CODARTICULO = SOURCE.CODARTICULO)
@@ -380,7 +380,7 @@ WHERE
         VALUES (@CODARTICULO, @CODIGO_SICM, @DESC_GOBIERNO);
   `;
 
-  static getClientesSinMapear = `
+    static getClientesSinMapear = `
     SELECT TOP (@LIMIT)
         C.CODCLIENTE, 
         C.NOMBRECLIENTE,
@@ -395,18 +395,18 @@ WHERE
         AND LEN(C.NIF20) > 5 
   `;
 
-  static insertarGuia = `
+    static insertarGuia = `
     INSERT INTO FARMAPATRIAGUIAS ( NUMGUIASICM, SERIEFAC, NUMFAC, CODCLIENTE, ESTATUS, RESPUESTASICM, TIPODOC )
     VALUES (@GUIA, @SERIE, @NUMERO, @CLIENTE, @ESTATUS, @LINK, @TIPODOC)
   `;
 
-  static actualizarEstatusGuia = `
+    static actualizarEstatusGuia = `
     UPDATE FARMAPATRIAGUIAS 
     SET ESTATUS = @ESTATUS 
     WHERE NUMGUIASICM = @GUIA
   `;
 
-  static insertarMapeoCliente = `
+    static insertarMapeoCliente = `
     MERGE FARMAPATRIACLIENTES AS TARGET 
     USING (SELECT @RIF AS RIFCLIENTE) AS SOURCE 
     ON (TARGET.RIFCLIENTE = SOURCE.RIFCLIENTE)
@@ -417,7 +417,7 @@ WHERE
 	    VALUES (@CODIGO, @RIF, @SICM, @NOMBRE, @ESTATUS); 
   `;
 
-  static getProveedoresSinMapear = `
+    static getProveedoresSinMapear = `
     SELECT TOP (@LIMIT)
         P.CODPROVEEDOR, 
         P.NOMPROVEEDOR,
@@ -432,7 +432,7 @@ WHERE
         AND LEN(P.NIF20) > 5 
   `;
 
-  static insertarMapeoProveedor = `
+    static insertarMapeoProveedor = `
     MERGE FARMAPATRIAPROVEEDORES AS TARGET 
     USING (SELECT @RIF AS RIFPROVEEDOR) AS SOURCE 
     ON (TARGET.RIFPROVEEDOR = SOURCE.RIFPROVEEDOR)
@@ -443,7 +443,7 @@ WHERE
 	    VALUES (@CODIGO, @RIF, @SICM, @NOMBRE, @ESTATUS); 
   `;
 
-  static obtenerClienteFP = `
+    static obtenerClienteFP = `
     SELECT
         *
     FROM 
@@ -452,13 +452,13 @@ WHERE
         REPLACE(REPLACE(RIFCLIENTE, '-',''), '.','') = REPLACE(REPLACE(@RIF, '-',''), '.','')
   `;
 
-  static validarArticuloFP = `
+    static validarArticuloFP = `
     SELECT CODSICM FROM ARTICULOSFARMAPATRIA WHERE CODARTICULO = @CODARTICULO 
   `;
 
-  static buscarGuia = `SELECT * FROM FARMAPATRIAGUIAS WHERE SERIEFAC = @SERIE AND NUMFAC = @NUMERO AND TIPODOC = 'A'`;
+    static buscarGuia = `SELECT * FROM FARMAPATRIAGUIAS WHERE SERIEFAC = @SERIE AND NUMFAC = @NUMERO AND TIPODOC = 'A'`;
 
-  static confirmarAlbaran = `
+    static confirmarAlbaran = `
     SELECT 
         FV.NUMSERIE AS NUMSERIEFACFV,
         FV.NUMFACTURA,
@@ -471,7 +471,11 @@ WHERE
         FACTURASVENTA FV 
         LEFT JOIN ALBVENTACAB AVC ON FV.NUMSERIE = AVC.NUMSERIEFAC AND FV.NUMFACTURA = AVC.NUMFAC AND FV.N = AVC.NFAC
     WHERE
-        FV.NUMSERIE LIKE @SERIE + '%'
-        AND FV.NUMFACTURA = @NUMERO
+        AVC.NUMSERIEFAC LIKE @SERIE + '%'
+        AND AVC.NUMFAC = @NUMERO
+  `;
+
+    static guia = `
+    SELECT * FROM FARMAPATRIAGUIAS WHERE SERIEFAC = @SERIEFAC AND NUMFAC = @NUMFAC
   `;
 }

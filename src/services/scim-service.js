@@ -2,7 +2,8 @@ import soap from "soap";
 import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
-//import { getConnection } from "../config/db.js";
+import { getConnection, sql } from "../config/db.js";
+import { cQuerysSQL } from "../querys/querysSQL.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -201,3 +202,30 @@ export const anularGuia = async (idGuia) => {
     throw error;
   }
 };
+
+export const comprobarSiExisteGuia = async (serie, numero) => {
+  try {
+    const serieFormateada = serie.trim();
+
+    const pool = await getConnection();
+
+    const guia = await pool
+      .request()
+      .input("SERIEFAC", sql.VarChar, serieFormateada)
+      .input("NUMFAC", sql.Int, numero)
+      .query(cQuerysSQL.guia);
+
+    if (guia.recordset.length === 0) {
+      return null
+    }
+    else {
+      return {
+        guiaObtenida: guia.recordset[0]
+      }
+    }
+  }
+  catch (error) {
+    console.error("Error al buscar la guia:", error.message);
+    throw error;
+  }
+}
